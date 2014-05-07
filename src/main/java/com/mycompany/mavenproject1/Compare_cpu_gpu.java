@@ -11,6 +11,7 @@ import com.nativelibs4java.opencl.CLEvent;
 import com.nativelibs4java.opencl.CLMem;
 import com.nativelibs4java.opencl.CLQueue;
 import com.nativelibs4java.opencl.JavaCL;
+import com.nativelibs4java.opencl.blas.CLMatrix2D;
 import com.nativelibs4java.opencl.blas.ujmp.CLDenseDoubleMatrix2D;
 import com.nativelibs4java.opencl.blas.ujmp.CLDenseFloatMatrix2D;
 import com.nativelibs4java.opencl.blas.ujmp.CLDenseFloatMatrix2DFactory;
@@ -25,6 +26,7 @@ import org.ujmp.core.Matrix;
 import org.ujmp.core.MatrixFactory;
 import org.ujmp.core.calculation.Calculation;
 import org.ujmp.core.floatmatrix.FloatMatrix2D;
+import org.ujmp.core.floatmatrix.impl.ArrayDenseFloatMatrix2D;
 import org.ujmp.core.mapper.MatrixMapper;
 
 /**
@@ -34,23 +36,23 @@ import org.ujmp.core.mapper.MatrixMapper;
 public class Compare_cpu_gpu {
 
     public static void performGPU() {
+        // JavaCl-Blas (GPU)
         
         // stell die dimension der matrizen ein (dim x dim)
-        int dim = 4048;
+        int dim = 6000;
 
-        // diese matrizen bruachen 1100ms auf meinem rechner
-//        Matrix rand = MatrixFactory.rand(dim, dim);
-//        Matrix randn = MatrixFactory.randn(dim, dim);
-        
-        
-        // diese matrizen bruachen 328ms auf meinem rechner
-        FloatMatrix2D a = CLDenseFloatMatrix2D.factory.dense(dim, dim);
-        FloatMatrix2D b = CLDenseFloatMatrix2D.factory.dense(dim, dim);
+        // Matrix aa = MatrixFactory.rand(dim, dim);
+        // create superfast matricies
+        CLDenseFloatMatrix2D a = new CLDenseFloatMatrix2D(dim, dim);
+        CLDenseFloatMatrix2D b = new CLDenseFloatMatrix2D(dim, dim);
 
-        // würde am liebsten diese benutzen: CLDenseDoubleMatrix2D        
-        // fülle die matrizen mit werten
-        for (int i = 0; i < dim; i++) {
-            for (int j = 0; j < dim; j++) {
+        // fill the matricies with zeroes
+        a.clear();
+        b.clear();
+
+        // fill the matricies with some values 
+        for (int i = 0; i < 2000; i++) {
+            for (int j = 0; j < 20; j++) {
                 a.setAsFloat(2.0f, i, j);
                 b.setAsFloat(1.3f, i, j);
             }
@@ -60,8 +62,8 @@ public class Compare_cpu_gpu {
         Stopwatch timer = new Stopwatch();
         timer.start();
 
+        // calculate
         Matrix c = a.times(b);
-        //Matrix c = rand.times(randn);
 
         timer.stop();
 
@@ -70,7 +72,7 @@ public class Compare_cpu_gpu {
     }
 
     public static void performCPU() {
-
+        // jBlas (CPU)
         DoubleMatrix A = new DoubleMatrix(new double[][]{
             {1.0, 2.0, 3.0},
             {4.0, 5.0, 6.0},
@@ -88,7 +90,17 @@ public class Compare_cpu_gpu {
     }
 
     public static void main(String[] args) throws IOException {
+
+        try {
+            MatrixMapper.getInstance().setDenseFloatMatrix2DClassName(ArrayDenseFloatMatrix2D.class.getName());
+        } catch (Exception ex) {
+            System.out.println("Something went wrong here:\n MatrixMapper.getInstance().setDenseFloatMatrix2DClassName(ArrayDenseFloatMatrix2D.class.getName());");
+        }
+        
+        // jBlas (CPU)
         performCPU();
+        
+        // JavaCl-Blas (GPU)
         performGPU();
     }
 }

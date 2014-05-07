@@ -8,7 +8,7 @@ __kernel void m_mult(
     if (i >= n)
         return;
 
-    out[i] = 0.03;
+    out[i] = 0.63;
 }
 __kernel void add_floats(
     __global const float* a,
