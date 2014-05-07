@@ -25,7 +25,7 @@ public class JavaCLTutorial3 {
         TutorialKernels kernels = new TutorialKernels(context);
         int[] globalSizes = new int[] { n };
         CLEvent fillEvt = kernels.fill_in_values(queue, a, b, n, globalSizes, null);
-        CLEvent addEvt = kernels.add_floats(queue, a, b, out, n, globalSizes, null, fillEvt);
+        CLEvent addEvt = kernels.m_mult(queue, a, b, out, n, globalSizes, null, fillEvt);
         
         Pointer<Float> outPtr = out.read(queue, addEvt); // blocks until add_floats finished
 

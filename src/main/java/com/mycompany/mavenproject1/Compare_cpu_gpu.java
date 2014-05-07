@@ -8,18 +8,24 @@ package com.mycompany.mavenproject1;
 import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLEvent;
-import com.nativelibs4java.opencl.CLKernel;
 import com.nativelibs4java.opencl.CLMem;
-import com.nativelibs4java.opencl.CLProgram;
 import com.nativelibs4java.opencl.CLQueue;
 import com.nativelibs4java.opencl.JavaCL;
-import com.nativelibs4java.util.IOUtils;
+import com.nativelibs4java.opencl.blas.ujmp.CLDenseDoubleMatrix2D;
+import com.nativelibs4java.opencl.blas.ujmp.CLDenseFloatMatrix2D;
+import com.nativelibs4java.opencl.blas.ujmp.CLDenseFloatMatrix2DFactory;
 import java.io.IOException;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import java.nio.ByteOrder;
 import org.bridj.Pointer;
 import static org.bridj.Pointer.allocateFloats;
+import org.jblas.DoubleMatrix;
+import org.ujmp.core.Matrix;
+import org.ujmp.core.MatrixFactory;
+import org.ujmp.core.calculation.Calculation;
+import org.ujmp.core.floatmatrix.FloatMatrix2D;
+import org.ujmp.core.mapper.MatrixMapper;
 
 /**
  *
@@ -27,50 +33,62 @@ import static org.bridj.Pointer.allocateFloats;
  */
 public class Compare_cpu_gpu {
 
-    public static void performGPU() throws IOException {
-        CLContext context = JavaCL.createBestContext();
-        CLQueue queue = context.createDefaultQueue();
-        ByteOrder byteOrder = context.getByteOrder();
+    public static void performGPU() {
+        
+        // stell die dimension der matrizen ein (dim x dim)
+        int dim = 4048;
 
-        int n = 8;
-        Pointer<Float> aPtr = allocateFloats(n).order(byteOrder),
-                bPtr = allocateFloats(n).order(byteOrder);
+        // diese matrizen bruachen 1100ms auf meinem rechner
+//        Matrix rand = MatrixFactory.rand(dim, dim);
+//        Matrix randn = MatrixFactory.randn(dim, dim);
+        
+        
+        // diese matrizen bruachen 328ms auf meinem rechner
+        FloatMatrix2D a = CLDenseFloatMatrix2D.factory.dense(dim, dim);
+        FloatMatrix2D b = CLDenseFloatMatrix2D.factory.dense(dim, dim);
 
-        for (int i = 0; i < n; i++) {
-            aPtr.set(i, (float) cos(i));
-            bPtr.set(i, (float) sin(i));
+        // würde am liebsten diese benutzen: CLDenseDoubleMatrix2D        
+        // fülle die matrizen mit werten
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++) {
+                a.setAsFloat(2.0f, i, j);
+                b.setAsFloat(1.3f, i, j);
+            }
         }
 
-        // Create OpenCL input buffers (using the native memory pointers aPtr and bPtr) :
-        CLBuffer<Float> a = context.createFloatBuffer(CLMem.Usage.Input, aPtr),
-                b = context.createFloatBuffer(CLMem.Usage.Input, bPtr);
-
-        // Create an OpenCL output buffer :
-        CLBuffer<Float> out = context.createFloatBuffer(CLMem.Usage.Output, n * n);
-
-        String src = IOUtils.readText(JavaCLTutorial1.class.getResource("TutorialKernels.cl"));
-        CLProgram program = context.createProgram(src);
-        CLKernel mmult = program.createKernel("mmult");
-
-        mmult.setArgs(a, b, out, n);
-        int[] globalSizes = new int[]{n};
-
+        // hier geht die rechng los und wird auch die zeit gestoppt
         Stopwatch timer = new Stopwatch();
         timer.start();
 
-        CLEvent addEvt = mmult.enqueueNDRange(queue, globalSizes);
-
-        Pointer<Float> outPtr = out.read(queue, addEvt); // blocks until add_floats finished
+        Matrix c = a.times(b);
+        //Matrix c = rand.times(randn);
 
         timer.stop();
-        System.out.println(timer.getElapsedTime());
-        for (int i = 0; i < n * n && i < n * n; i++) {
-            System.out.println("out[" + i + "] = " + outPtr.get(i));
-        }
 
+        System.out.println("Ergebnis der MAtrixmultplikation:\n" + c);
+        System.out.println(timer.getElapsedTime());
+    }
+
+    public static void performCPU() {
+
+        DoubleMatrix A = new DoubleMatrix(new double[][]{
+            {1.0, 2.0, 3.0},
+            {4.0, 5.0, 6.0},
+            {7.0, 8.0, 9.0}
+        });
+        DoubleMatrix B = new DoubleMatrix(new double[][]{
+            {1.0, 2.0, 3.0},
+            {4.0, 5.0, 6.0},
+            {7.0, 8.0, 9.0}
+        });
+
+        /*DoubleMatrix y;
+         y = A.mmul(B);
+         System.out.println("Hello World!" + y);*/
     }
 
     public static void main(String[] args) throws IOException {
+        performCPU();
         performGPU();
     }
 }
