@@ -10,22 +10,20 @@
  */
 public class HintonRBMSettings {
     
-    private int maxepoch             = 10;
+    private int maxepoch;
     
-    private double epsilonw          = 0.001f; // Learning rate for weights 
-    private double epsilonvb         = 0.001f; // Learning rate for biases of visible units
-    private double epsilonhb         = 0.001f; // Learning rate for biases of hidden units 
-    private double weightcost        = 0.0002f;  
-    private double initialmomentum   = 0.5f;
-    private double finalmomentum     = 0.5f;//0.9f;
+    private double epsilonw;
+    private double epsilonvb;
+    private double epsilonhb;
+    private double weightcost;
+    private double initialmomentum;
+    private double finalmomentum;
     
-    private int numhid               = 1024;
+    private int numhid;
     
-    private int edgeLength           = 32;
-    
-    private int numcases             = 128;
-    private int numdims              = edgeLength * edgeLength * 3;
-    private int numbatches           = 20000;
+    private int numcases;
+    private int numdims;
+    private int numbatches;
     
     public HintonRBMSettings() {}
 
@@ -91,14 +89,6 @@ public class HintonRBMSettings {
 
     public void setNumhid(int numhid) {
         this.numhid = numhid;
-    }
-
-    public int getEdgeLength() {
-        return edgeLength;
-    }
-
-    public void setEdgeLength(int edgeLength) {
-        this.edgeLength = edgeLength;
     }
 
     public int getNumcases() {

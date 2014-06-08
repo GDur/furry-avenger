@@ -16,7 +16,7 @@ import jcuda.runtime.cudaDeviceProp;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jblas.DoubleMatrix;
-import org.jblas.MyNativeBlasLibraryLoader;
+
 
 /**
  * Matrix utilities for CUDA graphics card greater version 400, e.g. Nvidia
@@ -223,8 +223,6 @@ public final class JCUDAMatrixUtils {
      * Simple benchmarking between CPU and GPU.
      */
     public static void main(String[] args) {
-        
-        MyNativeBlasLibraryLoader.VERBOSE = true;
 
         int n = 40000;
         int k = 3072;
@@ -232,8 +230,8 @@ public final class JCUDAMatrixUtils {
 
         int N = 4096;
 
-        DoubleMatrix a = DoubleMatrix.rand(128, 3072).mmul(1000f);
-        DoubleMatrix b = DoubleMatrix.rand(3072, 1024).mmul(1000f);
+        DoubleMatrix a = DoubleMatrix.rand(4096, 4096).mmul(1000f);
+        DoubleMatrix b = DoubleMatrix.rand(4096, 4096).mmul(1000f);
         long start = System.currentTimeMillis();
         DoubleMatrix multiplyGPU = multiply(a, b);
         LOG.info("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");

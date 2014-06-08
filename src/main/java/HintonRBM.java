@@ -37,8 +37,6 @@ public class HintonRBM {
     
     int numhid;
     
-    int edgeLength;
-    
     int numcases;
     int numdims;
     int numbatches;
@@ -72,8 +70,6 @@ public class HintonRBM {
         this.finalmomentum   = rbmSettings.getFinalmomentum();
 
         this.numhid          = rbmSettings.getNumhid();
-
-        this.edgeLength      = rbmSettings.getEdgeLength();
 
         this.numcases        = rbmSettings.getNumcases();
         this.numdims         = rbmSettings.getNumdims();
@@ -122,10 +118,10 @@ public class HintonRBM {
             // for batch = 1:numbatches,
             for(int batch = 0; batch < numbatches; batch++) {
                 
-                //long start = System.currentTimeMillis();
+                long start = System.currentTimeMillis();
                 
                 //fprintf(1,'epoch %d batch %d\r',epoch,batch);
-                //System.out.println("epoch " + epoch + " batch " + batch);
+                System.out.println("epoch: " + epoch + " batch: " + batch);
                 
                 // START POSITIVE PHASE
                 // data = batchdata(:,:,batch);
@@ -203,26 +199,26 @@ public class HintonRBM {
                 hidbiases = hidbiases.add(hidbiasinc);
                 
                 // END OF UPDATES
-                //LOG.info("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
+                LOG.info("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
             }
             
-            double finalError = 255.0f * Math.sqrt( (1.0f / (edgeLength * edgeLength * numcases * numbatches)) * errsum);
+            double finalError = 255.0f * Math.sqrt( (1.0f / (numdims * numcases * numbatches)) * errsum);
             System.out.println("Error: " + finalError);
             
-            //saveWeights(epoch);
+            saveWeights(epoch);
         }
     }
     
     public DoubleMatrix getHidden(DoubleMatrix visibleData) {
         poshidprobs = JCUDAMatrixUtils.multiply(visibleData, vishid);
-        poshidprobs = poshidprobs.add(hidbiases.repmat(1, 1));
+        poshidprobs = poshidprobs.add(hidbiases.repmat(visibleData.getRows(), 1));
         //DoubleMatrix poshidstates = poshidprobs.add(DoubleMatrix.randn(1, numhid)); 
 
         return poshidprobs;
     }
     
     public DoubleMatrix getVisible(DoubleMatrix hiddenData) {
-        DoubleMatrix negdata = sigmoid(JCUDAMatrixUtils.multiply(hiddenData, vishid, false, true).sub(visbiases.repmat(1, 1)));
+        DoubleMatrix negdata = sigmoid(JCUDAMatrixUtils.multiply(hiddenData, vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
         
         return negdata;
     }

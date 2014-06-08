@@ -1,7 +1,11 @@
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import org.jblas.DoubleMatrix;
 
 /*
@@ -15,6 +19,8 @@ import org.jblas.DoubleMatrix;
  * @author Radek
  */
 public class TinyImagesDataProvider implements DataProvider {
+    
+    private int offset = 0;
     
     private final String path;
     private final int numcases;
@@ -30,10 +36,17 @@ public class TinyImagesDataProvider implements DataProvider {
     public DoubleMatrix loadMiniBatch(int index, int numcases) {
         double[][] imageLabData = new double[numcases][];
         for(int i = 0; i < numcases; i++) {
-            BufferedImage image  = loadTinyImage(index * numcases + i);
-            imageLabData[i] = DataConverter.processPixelData(image, edgeLength, false, false, 0, 1, false, true);
+            BufferedImage image  = loadTinyImage(index * numcases + i + offset);
+            if(isRGB(image)) {
+                imageLabData[i] = DataConverter.processPixelData(image, edgeLength, false, false, 0, 1, false, true);
+            } else {
+                i--;
+                offset++;
+            }
         }
-
+        
+        System.out.println("Loaded mini batch from " + (index * numcases + offset) + " to " + (index * numcases + numcases + offset) + " total offset is " + offset);
+        
         return new DoubleMatrix(imageLabData);
     }
         
@@ -84,5 +97,44 @@ public class TinyImagesDataProvider implements DataProvider {
 
         return image;
     }
+
+    private static boolean isRGB(BufferedImage image) {
+        double threshold = 1;
+        
+        int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
+        
+        double color = 0;
+        for(int i = 0; i < pixels.length; i++) {
+            int argb = pixels[i];
+
+            int r = ((argb >> 16) & 0xFF);
+            int g = ((argb >> 8) & 0xFF);
+            int b = ((argb) & 0xFF);
+            
+            LAB lab = LAB.fromRGB(r, g, b, 0);
+            
+            color += Math.abs(lab.a);
+            color += Math.abs(lab.b);
+        }
+        
+        color /= pixels.length;
+        
+        return (color > threshold);
+    }
+    
+    public static void main(String args[]) {
+            BufferedImage inputImage = null;
+            
+            // load image
+            try {
+                 File imageFile = new File("originalImage.jpg");
+                 inputImage = ImageIO.read(imageFile);
+            } catch (IOException ex) {
+                Logger.getLogger(Colorizer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            isRGB(inputImage);
+    }
+    
     
 }

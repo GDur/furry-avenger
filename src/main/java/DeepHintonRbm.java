@@ -21,12 +21,13 @@ public class DeepHintonRbm {
         this.rbms = rbms;
     }
 
-    DeepHintonRbm(ArrayList<HintonRBMSettings> deepRbmSettings, String path) {
+    DeepHintonRbm(ArrayList<HintonRBMSettings> deepRbmSettings, String path, int edgeLength) {
         this.rbms = new ArrayList<>();
         
-        DataProvider originalDataProvider = new TinyImagesDataProvider(path, deepRbmSettings.get(0).getNumcases(), deepRbmSettings.get(0).getEdgeLength());
+        DataProvider originalDataProvider = new TinyImagesDataProvider(path, deepRbmSettings.get(0).getNumcases(), edgeLength);
         
-        for(int i = 0; i < deepRbmSettings.size(); i++) {  
+        for(int i = 0; i < deepRbmSettings.size(); i++) { 
+            originalDataProvider = new TinyImagesDataProvider(path, deepRbmSettings.get(0).getNumcases(), edgeLength);
             DataProvider dataProvider = null;
             
             if(i == 0) {

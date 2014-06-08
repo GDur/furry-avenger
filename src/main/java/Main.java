@@ -11,7 +11,7 @@
 public class Main {
     
     public static void main(String args[]) {
-        Colorizer colorize = new Colorizer();
+        new Colorizer();
     }
     
 }
