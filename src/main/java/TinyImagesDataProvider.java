@@ -1,4 +1,3 @@
-
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,12 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.jblas.DoubleMatrix;
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /**
  *
@@ -33,24 +26,26 @@ public class TinyImagesDataProvider implements DataProvider {
     }
     
     @Override
-    public DoubleMatrix loadMiniBatch(int index, int numcases) {
-        double[][] imageLabData = new double[numcases][];
+    public DoubleMatrix loadMiniBatch(int index) {
+        double[][] data = new double[numcases][];
         for(int i = 0; i < numcases; i++) {
             BufferedImage image  = loadTinyImage(index * numcases + i + offset);
-            if(isRGB(image)) {
-                imageLabData[i] = DataConverter.processPixelData(image, edgeLength, false, false, 0, 1, false, true);
+            
+            //if(hasColor(image)) {
+            if(true) {
+                data[i] = DataConverter.processPixelLABData(image);
             } else {
                 i--;
                 offset++;
             }
         }
         
-        System.out.println("Loaded mini batch from " + (index * numcases + offset) + " to " + (index * numcases + numcases + offset) + " total offset is " + offset);
+        //System.out.println("Loaded mini batch from " + (index * numcases + offset) + " to " + (index * numcases + numcases + offset) + " total offset is " + offset);
         
-        return new DoubleMatrix(imageLabData);
+        return new DoubleMatrix(data);
     }
         
-    public BufferedImage loadTinyImage(int index) {
+    public BufferedImage loadTinyImage(long index) {
         BufferedImage image = new BufferedImage(edgeLength, edgeLength, BufferedImage.TYPE_INT_RGB);
 
         int planeSize = edgeLength*edgeLength;
@@ -58,11 +53,9 @@ public class TinyImagesDataProvider implements DataProvider {
         try(FileInputStream inputStream = new FileInputStream(path)) {
             int[] pixels = new int[planeSize];
 
-            long idx = (long)index;
-            long offset = 3L * idx * planeSize;
             byte[] buffer = new byte[planeSize];
 
-            inputStream.skip(offset);
+            inputStream.skip(3L * index * planeSize);
 
             inputStream.read(buffer);
             for (int c=0; c < planeSize; c++) {
@@ -97,44 +90,93 @@ public class TinyImagesDataProvider implements DataProvider {
 
         return image;
     }
-
-    private static boolean isRGB(BufferedImage image) {
-        double threshold = 1;
-        
-        int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
-        
-        double color = 0;
-        for(int i = 0; i < pixels.length; i++) {
-            int argb = pixels[i];
-
-            int r = ((argb >> 16) & 0xFF);
-            int g = ((argb >> 8) & 0xFF);
-            int b = ((argb) & 0xFF);
+    
+        private void test() {
+            // TODO Auto-generated method stub
             
-            LAB lab = LAB.fromRGB(r, g, b, 0);
+            int planeSize = edgeLength*edgeLength;
             
-            color += Math.abs(lab.a);
-            color += Math.abs(lab.b);
+            try(FileInputStream inputStream = new FileInputStream(path)) {
+ 
+                byte[] buffer = new byte[planeSize];
+                
+                for (int i = 0; i < 1000; i++) {                        
+
+                    int[] pixels = new int[planeSize];
+
+                    inputStream.read(buffer);
+                    for (int c=0; c < planeSize; c++) {
+                            int r = buffer[c]&0xff;
+                            pixels[c] = 0xff000000 | (r<<16);
+                    }
+
+                    inputStream.read(buffer);
+                    for (int c=0; c < planeSize; c++) {
+                            int g = buffer[c]&0xff;
+                            pixels[c] |= g<<8;
+                    }
+
+                    inputStream.read(buffer);
+                    for (int c=0; c < planeSize; c++) {
+                            int b = buffer[c]&0xff;
+                            pixels[c] |= b;
+                    }
+
+                    int[] pixelsRotated = new int[pixels.length];
+                    for(int y = 0; y < 32; y++) {
+                        for(int x = 0; x < 32; x++) {
+                            pixelsRotated[y * 32 + x] = pixels[x * 32 + y];
+                        }
+                    }
+                    
+                    BufferedImage image = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
+                    image.setRGB(0, 0, 32, 32, pixelsRotated, 0, 32);
+                    
+                    if(hasColor(image)) {
+                        File outputfile = new File("color/" + "image_" + i + ".png");
+                        ImageIO.write(image, "png", outputfile);
+                    } else {
+                        File outputfile = new File("bw/" + "image_" + i + ".png");
+                        ImageIO.write(image, "png", outputfile);
+                    }
+                     System.out.println(i);
+                    //imagesLuminance[i] = extractLuminance(pixelsRotated);
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+    private static boolean hasColor(BufferedImage image) {
+        double threshold = 0.01;
+        
+        double[] data = DataConverter.processPixelLABData(image);
+        
+        double Cb = 0;
+        double Cr = 0;
+        for(int i = 0; i < data.length / 3; i++) {
+            int pixel = i * 3;
+            
+            Cb += Math.abs(data[pixel + 1] - 0.5); // Cb
+            Cr += Math.abs(data[pixel + 2] - 0.5); // Cr
         }
         
-        color /= pixels.length;
+        Cb /= data.length / 3;
+        Cr /= data.length / 3;
         
-        return (color > threshold);
+        return (Cb > threshold || Cr >threshold);
     }
     
     public static void main(String args[]) {
-            BufferedImage inputImage = null;
-            
-            // load image
-            try {
-                 File imageFile = new File("originalImage.jpg");
-                 inputImage = ImageIO.read(imageFile);
-            } catch (IOException ex) {
-                Logger.getLogger(Colorizer.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            isRGB(inputImage);
+        TinyImagesDataProvider d =new TinyImagesDataProvider("/Users/Radek/Downloads/tiny_images.bin.fldownload/chunk_0.flchunk", 32, 32);
+        d.test();
     }
+
+    @Override
+    public void reset() {
+        offset = 0;
+    }
+    
     
     
 }

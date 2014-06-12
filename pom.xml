@@ -35,11 +35,12 @@
 	<version>0.5.5</version>
 </dependency>
 
-<dependency>
-  <groupId>org.jblas</groupId>
-  <artifactId>jblas</artifactId>
-  <version>1.2.3</version>
-</dependency>
+        <dependency>
+            <groupId>org.jblas</groupId>
+            <artifactId>jblas</artifactId>
+            <version>1.2.3</version>
+            <type>jar</type>
+        </dependency>
 
 <dependency>
 	<groupId>commons-logging</groupId>

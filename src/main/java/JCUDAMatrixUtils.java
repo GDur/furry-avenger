@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcublas.JCublas;
@@ -120,7 +114,7 @@ public final class JCUDAMatrixUtils {
             JCublas.cublasDgemm(transA == 0 ? 'n' : 'y', transB == 0 ? 'n' : 'y', dim.getM(), dim.getN(), dim.getK(), 1d, a, dim.getLdA(), b, dim.getLdB(), 0d, deviceResultPointer, dim.getLdC());
         }
 
-        //JCuda.cudaDeviceSynchronize();
+        JCuda.cudaDeviceSynchronize();
 
         DoubleMatrix matrix = getMatrix(deviceResultPointer, dim.getM(), dim.getN());
 

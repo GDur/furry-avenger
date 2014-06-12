@@ -1,30 +1,19 @@
-
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jblas.DoubleMatrix;
 import org.jblas.MatrixFunctions;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  *
  * @author Radek
  */
-public class HintonRBM {
+public class HintonRBM implements RBM{
    
-    private static final Log LOG = LogFactory.getLog(HintonRBM.class);
+    private static final Log LOG = LogFactory.getLog(HintonRBMGaussianLinear.class);
     
     int maxepoch;
     
@@ -35,6 +24,9 @@ public class HintonRBM {
     double initialmomentum;
     double finalmomentum;
     
+    double finalError;
+    double lastError;
+    
     int numhid;
     
     int numcases;
@@ -44,6 +36,10 @@ public class HintonRBM {
     DoubleMatrix vishid;
     DoubleMatrix hidbiases;
     DoubleMatrix visbiases;
+    
+    DoubleMatrix lastVishid;
+    DoubleMatrix lastHidbiases;
+    DoubleMatrix lastVisbiases;
     
     DoubleMatrix poshidprobs;
     DoubleMatrix neghidprobs;
@@ -58,7 +54,7 @@ public class HintonRBM {
     
     DataProvider dataProvider;
     
-    public HintonRBM(HintonRBMSettings rbmSettings, DataProvider dataProvider) {
+    public HintonRBM(RBMSettings rbmSettings, DataProvider dataProvider) {
 
         this.maxepoch        = rbmSettings.getMaxepoch();
 
@@ -78,7 +74,7 @@ public class HintonRBM {
         this.dataProvider = dataProvider;
         
         // vishid       = 0.1*randn(numdims, numhid);
-        this.vishid          = DoubleMatrix.randn(numdims, numhid).mmuli(0.1f);
+        this.vishid          = DoubleMatrix.randn(numdims, numhid).mmuli(0.01f);
         // hidbiases    = zeros(1,numhid);
         this.hidbiases       = DoubleMatrix.zeros(1, numhid);
         //visbiases     = zeros(1,numdims);
@@ -104,7 +100,7 @@ public class HintonRBM {
         
         // batchposhidprobs=zeros(numcases,numhid,numbatches);
     }
-    
+
     public void train() {
     
         // for epoch = epoch:maxepoch,
@@ -125,13 +121,12 @@ public class HintonRBM {
                 
                 // START POSITIVE PHASE
                 // data = batchdata(:,:,batch);
-                DoubleMatrix data = dataProvider.loadMiniBatch(batch, numcases);
+                DoubleMatrix data = dataProvider.loadMiniBatch(batch);
                 //double[][] dataArray = {{0.5, 0.2, 0.4, 0.5, 0.8},{0.3, 0.4, 0.7, 0.0, 0.9},{0.1, 0.2, 0.3, 0.4, 0.5}};
                 //DoubleMatrix testDataMatrix = new DoubleMatrix(dataArray);
                 
-                // poshidprobs =  (data*vishid) + repmat(hidbiases,numcases,1);
-                poshidprobs = JCUDAMatrixUtils.multiply(data, vishid);
-                poshidprobs = poshidprobs.add(hidbiases.repmat(numcases, 1));
+                // poshidprobs = 1./(1 + exp(-data*vishid - repmat(hidbiases,numcases,1)));
+                poshidprobs = sigmoid(JCUDAMatrixUtils.multiply(data.neg(), vishid).sub(hidbiases.repmat(numcases, 1)));
                 
                 // batchposhidprobs(:,:,batch)=poshidprobs;
                 
@@ -145,15 +140,19 @@ public class HintonRBM {
                 
                 // END OF POSITIVE PHASE
             
-                // poshidstates = poshidprobs+randn(numcases,numhid);
-                DoubleMatrix poshidstates = poshidprobs.add(DoubleMatrix.randn(numcases, numhid));
+                // poshidstates = poshidprobs > rand(numcases,numhid);
+                DoubleMatrix poshidstates = poshidprobs.gt(DoubleMatrix.rand(numcases, numhid));
+                
+                if(epoch == maxepoch - 1) {
+                    poshidstates = poshidprobs;
+                }
                 
                 // START NEGATIVE PHASE
                 // negdata = 1./(1 + exp(-poshidstates*vishid' - repmat(visbiases,numcases,1)));
-                DoubleMatrix negdata = sigmoid(JCUDAMatrixUtils.multiply(poshidstates, vishid, false, true).sub(visbiases.repmat(numcases, 1)));
+                DoubleMatrix negdata = sigmoid(JCUDAMatrixUtils.multiply(poshidstates.neg(), vishid, false, true).sub(visbiases.repmat(numcases, 1)));
                 
-                // neghidprobs = (negdata*vishid) + repmat(hidbiases,numcases,1);
-                neghidprobs = (JCUDAMatrixUtils.multiply(negdata, vishid, false, false)).add(hidbiases.repmat(numcases, 1));
+                // neghidprobs = 1./(1 + exp(-negdata*vishid - repmat(hidbiases,numcases,1)))
+                neghidprobs = sigmoid((JCUDAMatrixUtils.multiply(negdata.neg(), vishid, false, false)).sub(hidbiases.repmat(numcases, 1)));
                 
                 // negprods  = negdata'*neghidprobs;
                 negprods = JCUDAMatrixUtils.multiply(negdata, neghidprobs, true, false);
@@ -199,41 +198,40 @@ public class HintonRBM {
                 hidbiases = hidbiases.add(hidbiasinc);
                 
                 // END OF UPDATES
-                LOG.info("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
+                //LOG.info("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
             }
             
-            double finalError = 255.0f * Math.sqrt( (1.0f / (numdims * numcases * numbatches)) * errsum);
-            System.out.println("Error: " + finalError);
+            finalError = 255.0d * Math.sqrt( (1.0d / (numdims * numcases * numbatches)) * errsum);
             
-            saveWeights(epoch);
+            System.out.println("Error: " + finalError);
+  
+            //saveWeights(epoch);
+            dataProvider.reset();
         }
     }
     
+    @Override
     public DoubleMatrix getHidden(DoubleMatrix visibleData) {
-        poshidprobs = JCUDAMatrixUtils.multiply(visibleData, vishid);
-        poshidprobs = poshidprobs.add(hidbiases.repmat(visibleData.getRows(), 1));
-        //DoubleMatrix poshidstates = poshidprobs.add(DoubleMatrix.randn(1, numhid)); 
-
-        return poshidprobs;
+        return sigmoid(JCUDAMatrixUtils.multiply(visibleData.neg(), vishid, false, false).sub(hidbiases.repmat(visibleData.getRows(), 1)));
     }
     
+    @Override
     public DoubleMatrix getVisible(DoubleMatrix hiddenData) {
-        DoubleMatrix negdata = sigmoid(JCUDAMatrixUtils.multiply(hiddenData, vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
-        
-        return negdata;
+        return sigmoid(JCUDAMatrixUtils.multiply(hiddenData.neg(), vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
     }
     
-    public void saveWeights(int i) {
+    private void saveWeights(int i) {
         try {
-            InOutOperations.saveSimpleWeights(vishid.toFloat().toArray2(), new Date(), String.valueOf(i));
+            InOutOperations.saveSimpleWeights(vishid.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_weights");
+            InOutOperations.saveSimpleWeights(hidbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_hidbiases");
+            InOutOperations.saveSimpleWeights(visbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_visbiases");
         } catch (IOException ex) {
-            Logger.getLogger(HintonRBM.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(HintonRBMGaussianLinear.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private DoubleMatrix sigmoid(DoubleMatrix doubleMatrix) {
-        final DoubleMatrix negM = doubleMatrix.neg();
-        final DoubleMatrix negExpM = MatrixFunctions.exp(negM);
+        final DoubleMatrix negExpM = MatrixFunctions.exp(doubleMatrix);
         final DoubleMatrix negExpPlus1M = negExpM.add(1.0f);
         final DoubleMatrix OneDivideNegExpPlusOneM = MatrixFunctions.pow(negExpPlus1M, -1.0f); 		 
         return OneDivideNegExpPlusOneM;

@@ -1,13 +1,5 @@
-
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import org.jblas.DoubleMatrix;
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /**
  *
@@ -15,20 +7,25 @@ import org.jblas.DoubleMatrix;
  */
 public class RbmDataProvider implements DataProvider{
     
-    private final DeepHintonRbm rbms;
+    private final DeepRBM rbms;
     private final DataProvider dataProvider;
     
-    public RbmDataProvider(ArrayList<HintonRBM> rbms, DataProvider dataProvider) {
-        this.rbms = new DeepHintonRbm(rbms);
+    public RbmDataProvider(ArrayList<RBM> rbms, DataProvider dataProvider) {
+        this.rbms = new DeepRBM(rbms);
         this.dataProvider = dataProvider;
     }
 
     @Override
-    public DoubleMatrix loadMiniBatch(int index, int numcases) {
-        DoubleMatrix originalData = dataProvider.loadMiniBatch(index, numcases);
+    public DoubleMatrix loadMiniBatch(int index) {
+        DoubleMatrix originalData = dataProvider.loadMiniBatch(index);
         DoubleMatrix hiddenData = rbms.getHidden(originalData);
         
         return hiddenData;
+    }
+
+    @Override
+    public void reset() {
+        this.dataProvider.reset();
     }
     
 }

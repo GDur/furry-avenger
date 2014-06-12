@@ -1,4 +1,3 @@
-
 import org.jblas.DoubleMatrix;
 
 /*
