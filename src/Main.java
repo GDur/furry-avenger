@@ -15,10 +15,10 @@ public final class Main {
 
     int edgeLength = 32;
     int numcases = 128;
-    int numbatches = 4000;
+    int numbatches = 1000;
 
     // RBM 1 
-    int maxepoch1 = 10;
+    int maxepoch1 = 5;
 
     float epsilonw1 = 0.001f; // Learning rate for weights 
     float epsilonvb1 = 0.001f; // Learning rate for biases of visible units

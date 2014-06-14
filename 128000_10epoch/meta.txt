@@ -9,7 +9,7 @@ Settings
     int numbatches = 1000;
 
     // RBM 1 
-    int maxepoch1 = 5;
+    int maxepoch1 = 10;
 
     float epsilonw1 = 0.001f; // Learning rate for weights 
     float epsilonvb1 = 0.001f; // Learning rate for biases of visible units

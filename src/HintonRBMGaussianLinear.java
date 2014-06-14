@@ -200,7 +200,7 @@ public class HintonRBMGaussianLinear implements RBM {
                 hidbiases = hidbiases.add(hidbiasinc);
                 
                 // END OF UPDATES
-                LOG.info("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
+                System.out.println("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
             }
             
             finalError = (float)(255.0f * Math.sqrt( (1.0d / (numdims * numcases * numbatches)) * errsum));

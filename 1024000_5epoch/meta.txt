@@ -6,7 +6,7 @@ Settings
 
     int edgeLength = 32;
     int numcases = 128;
-    int numbatches = 1000;
+    int numbatches = 8000;
 
     // RBM 1 
     int maxepoch1 = 5;
