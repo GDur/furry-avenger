@@ -1,5 +1,3 @@
-package main.java;
-
 /**
  * DataConverter
  *
@@ -9,12 +7,12 @@ public class RBMSettings {
 
     private int maxepoch;
 
-    private double epsilonw;
-    private double epsilonvb;
-    private double epsilonhb;
-    private double weightcost;
-    private double initialmomentum;
-    private double finalmomentum;
+    private float epsilonw;
+    private float epsilonvb;
+    private float epsilonhb;
+    private float weightcost;
+    private float initialmomentum;
+    private float finalmomentum;
 
     private int numhid;
 
@@ -33,51 +31,51 @@ public class RBMSettings {
         this.maxepoch = maxepoch;
     }
 
-    public double getEpsilonw() {
+    public float getEpsilonw() {
         return epsilonw;
     }
 
-    public void setEpsilonw(double epsilonw) {
+    public void setEpsilonw(float epsilonw) {
         this.epsilonw = epsilonw;
     }
 
-    public double getEpsilonvb() {
+    public float getEpsilonvb() {
         return epsilonvb;
     }
 
-    public void setEpsilonvb(double epsilonvb) {
+    public void setEpsilonvb(float epsilonvb) {
         this.epsilonvb = epsilonvb;
     }
 
-    public double getEpsilonhb() {
+    public float getEpsilonhb() {
         return epsilonhb;
     }
 
-    public void setEpsilonhb(double epsilonhb) {
+    public void setEpsilonhb(float epsilonhb) {
         this.epsilonhb = epsilonhb;
     }
 
-    public double getWeightcost() {
+    public float getWeightcost() {
         return weightcost;
     }
 
-    public void setWeightcost(double weightcost) {
+    public void setWeightcost(float weightcost) {
         this.weightcost = weightcost;
     }
 
-    public double getInitialmomentum() {
+    public float getInitialmomentum() {
         return initialmomentum;
     }
 
-    public void setInitialmomentum(double initialmomentum) {
+    public void setInitialmomentum(float initialmomentum) {
         this.initialmomentum = initialmomentum;
     }
 
-    public double getFinalmomentum() {
+    public float getFinalmomentum() {
         return finalmomentum;
     }
 
-    public void setFinalmomentum(double finalmomentum) {
+    public void setFinalmomentum(float finalmomentum) {
         this.finalmomentum = finalmomentum;
     }
 

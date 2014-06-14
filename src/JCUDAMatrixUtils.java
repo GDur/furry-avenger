@@ -1,5 +1,3 @@
-package main.java;
-
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.jcublas.JCublas;
@@ -11,7 +9,7 @@ import jcuda.runtime.JCuda;
 import jcuda.runtime.cudaDeviceProp;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 
 /**
@@ -43,10 +41,10 @@ public final class JCUDAMatrixUtils {
             cudaDeviceProp cudaDeviceProp = new cudaDeviceProp();
             JCuda.cudaGetDeviceProperties(cudaDeviceProp, 0);
             // verify that compute capability of 1.3 is available, because only
-            // here is the double precision operation allowed.
+            // here is the float precision operation allowed.
             if (cudaDeviceProp.major <= 1 && cudaDeviceProp.minor < 3) {
                 throw new IllegalArgumentException(
-                        "WARN Double precision computing only allowed since capability 1.3! You have "
+                        "WARN Float precision computing only allowed since capability 1.3! You have "
                         + cudaDeviceProp.major
                         + "."
                         + cudaDeviceProp.minor
@@ -88,7 +86,7 @@ public final class JCUDAMatrixUtils {
     /**
      * Multiplies matrix A with matrix B and returns a new matrix.
      */
-    public static DoubleMatrix multiply(DoubleMatrix a, DoubleMatrix b) {
+    public static FloatMatrix multiply(FloatMatrix a, FloatMatrix b) {
         return multiply(a, b, false, false);
     }
 
@@ -96,7 +94,7 @@ public final class JCUDAMatrixUtils {
      * Multiplies matrix A with matrix B (these are pointers, thus the dimension
      * must be passed and returns a new matrix.
      */
-    public static DoubleMatrix multiply(Pointer a, Pointer b, MatrixDimensions dim) {
+    public static FloatMatrix multiply(Pointer a, Pointer b, MatrixDimensions dim) {
 
         // Prepare the pointer for the result in DEVICE memory
         Pointer deviceResultPointer = new Pointer();
@@ -105,20 +103,20 @@ public final class JCUDAMatrixUtils {
         int transB = dim.isTransposeB() ? cublasOperation.CUBLAS_OP_T : cublasOperation.CUBLAS_OP_N;
 
         if (CUBLAS2_AVAILABLE) {
-            JCuda.cudaMalloc(deviceResultPointer, Sizeof.DOUBLE * resMatrixSize);
-            Pointer alpha = Pointer.to(new double[]{1.0f});
-            Pointer beta = Pointer.to(new double[]{0.0f});
-            JCublas2.cublasDgemm(handle, transA, transB, dim.getM(), dim.getN(), dim.getK(), alpha, a, dim.getLdA(), b, dim.getLdB(), beta, deviceResultPointer, dim.getLdC());
+            JCuda.cudaMalloc(deviceResultPointer, Sizeof.FLOAT * resMatrixSize);
+            Pointer alpha = Pointer.to(new float[]{1.0f});
+            Pointer beta = Pointer.to(new float[]{0.0f});
+            JCublas2.cublasSgemm(handle, transA, transB, dim.getM(), dim.getN(), dim.getK(), alpha, a, dim.getLdA(), b, dim.getLdB(), beta, deviceResultPointer, dim.getLdC());
             freePointer(alpha);
             freePointer(beta);
         } else {
-            JCublas.cublasAlloc(resMatrixSize, Sizeof.DOUBLE, deviceResultPointer);
-            JCublas.cublasDgemm(transA == 0 ? 'n' : 'y', transB == 0 ? 'n' : 'y', dim.getM(), dim.getN(), dim.getK(), 1d, a, dim.getLdA(), b, dim.getLdB(), 0d, deviceResultPointer, dim.getLdC());
+            JCublas.cublasAlloc(resMatrixSize, Sizeof.FLOAT, deviceResultPointer);
+            JCublas.cublasSgemm(transA == 0 ? 'n' : 'y', transB == 0 ? 'n' : 'y', dim.getM(), dim.getN(), dim.getK(), 1f, a, dim.getLdA(), b, dim.getLdB(), 0f, deviceResultPointer, dim.getLdC());
         }
 
         JCuda.cudaDeviceSynchronize();
 
-        DoubleMatrix matrix = getMatrix(deviceResultPointer, dim.getM(), dim.getN());
+        FloatMatrix matrix = getMatrix(deviceResultPointer, dim.getM(), dim.getN());
 
         freePointer(deviceResultPointer);
 
@@ -129,7 +127,7 @@ public final class JCUDAMatrixUtils {
      * Multiplies matrix a with matrix b and returns a new matrix. You can add
      * transpose flags for both matrices.
      */
-    public static DoubleMatrix multiply(DoubleMatrix a, DoubleMatrix b, boolean transposeA, boolean transposeB) {
+    public static FloatMatrix multiply(FloatMatrix a, FloatMatrix b, boolean transposeA, boolean transposeB) {
         
 //        if(transposeA) {
 //            a = a.transpose();
@@ -142,7 +140,7 @@ public final class JCUDAMatrixUtils {
         
         Pointer matrixPointerA = memcpyMatrix(a);
         Pointer matrixPointerB = memcpyMatrix(b);
-        DoubleMatrix matrix = multiply(matrixPointerA, matrixPointerB, new MatrixDimensions(a, b, transposeA, transposeB));
+        FloatMatrix matrix = multiply(matrixPointerA, matrixPointerB, new MatrixDimensions(a, b, transposeA, transposeB));
         freePointer(matrixPointerA);
         freePointer(matrixPointerB);
         return matrix;
@@ -154,15 +152,15 @@ public final class JCUDAMatrixUtils {
      * @param a 
      * @return a pointer to this matrix.
      */
-    public static Pointer memcpyMatrix(DoubleMatrix a) {
+    public static Pointer memcpyMatrix(FloatMatrix a) {
         int matrixSizeA = a.getColumns() * a.getRows();
-        double[] matrix = a.toArray();
+        float[] matrix = a.toArray();
         Pointer deviceMatrixA = new Pointer();
-        JCuda.cudaMalloc(deviceMatrixA, matrixSizeA * Sizeof.DOUBLE);
+        JCuda.cudaMalloc(deviceMatrixA, matrixSizeA * Sizeof.FLOAT);
         if (CUBLAS2_AVAILABLE) {
-            JCublas2.cublasSetMatrix(a.getRows(), a.getColumns(), Sizeof.DOUBLE, Pointer.to(matrix), a.getRows(), deviceMatrixA, a.getRows());
+            JCublas2.cublasSetMatrix(a.getRows(), a.getColumns(), Sizeof.FLOAT, Pointer.to(matrix), a.getRows(), deviceMatrixA, a.getRows());
         } else {
-            JCublas.cublasSetMatrix(a.getRows(), a.getColumns(), Sizeof.DOUBLE, Pointer.to(matrix), a.getRows(), deviceMatrixA, a.getRows());
+            JCublas.cublasSetMatrix(a.getRows(), a.getColumns(), Sizeof.FLOAT, Pointer.to(matrix), a.getRows(), deviceMatrixA, a.getRows());
         }
 
         return deviceMatrixA;
@@ -176,15 +174,15 @@ public final class JCUDAMatrixUtils {
      * @param columns the number of columns
      * @return a new matrix with the results from device.
      */
-    public static DoubleMatrix getMatrix(Pointer src, int rows, int columns) {
-        double[] raw = new double[rows * columns];
+    public static FloatMatrix getMatrix(Pointer src, int rows, int columns) {
+        float[] raw = new float[rows * columns];
         Pointer dst = Pointer.to(raw);
         if (CUBLAS2_AVAILABLE) {
-            JCublas2.cublasGetMatrix(rows, columns, Sizeof.DOUBLE, src, rows, dst, rows);
+            JCublas2.cublasGetMatrix(rows, columns, Sizeof.FLOAT, src, rows, dst, rows);
         } else {
-            JCublas.cublasGetMatrix(rows, columns, Sizeof.DOUBLE, src, rows, dst, rows);
+            JCublas.cublasGetMatrix(rows, columns, Sizeof.FLOAT, src, rows, dst, rows);
         }
-        return new DoubleMatrix(rows, columns, raw);
+        return new FloatMatrix(rows, columns, raw);
     }
 
     /**
@@ -226,13 +224,13 @@ public final class JCUDAMatrixUtils {
 
         int N = 4096;
 
-        DoubleMatrix a = DoubleMatrix.rand(4096, 4096).mmul(1000f);
-        DoubleMatrix b = DoubleMatrix.rand(4096, 4096).mmul(1000f);
+        FloatMatrix a = FloatMatrix.rand(4096, 4096).mmul(1000f);
+        FloatMatrix b = FloatMatrix.rand(4096, 4096).mmul(1000f);
         long start = System.currentTimeMillis();
-        DoubleMatrix multiplyGPU = multiply(a, b);
+        FloatMatrix multiplyGPU = multiply(a, b);
         LOG.info("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
         start = System.currentTimeMillis();
-        DoubleMatrix multiplyCPU = a.mmul(b);
+        FloatMatrix multiplyCPU = a.mmul(b);
         LOG.info("CPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
         LOG.info("Matrix difference: " + multiplyCPU.sub(multiplyGPU).sum());
     }

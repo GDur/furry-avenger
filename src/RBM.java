@@ -1,6 +1,5 @@
-package main.java;
 
-import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -14,6 +13,6 @@ import org.jblas.DoubleMatrix;
  */
 public interface RBM {
     public void train();
-    public DoubleMatrix getHidden(DoubleMatrix visibleData);
-    public DoubleMatrix getVisible(DoubleMatrix hiddenData);
+    public FloatMatrix getHidden(FloatMatrix visibleData);
+    public FloatMatrix getVisible(FloatMatrix hiddenData);
 }

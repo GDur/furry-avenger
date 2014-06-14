@@ -1,5 +1,3 @@
-package main.java;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -18,11 +16,11 @@ public class InOutOperations {
     private static final String simpleWeightsFolder = "Output/SimpleWeights";
     private static final String imageExportFolder = "Output/ImageExport"; 
     
-    public static void saveSimpleWeights(double[][] weights, Date date) throws IOException{
+    public static void saveSimpleWeights(float[][] weights, Date date) throws IOException{
         saveSimpleWeights(weights, date, "weights");
     }
     
-    public static void saveSimpleWeights(double[][] weights, Date date, String suffix) throws IOException{
+    public static void saveSimpleWeights(float[][] weights, Date date, String suffix) throws IOException{
         mkdir(simpleWeightsFolder);
         File file = new File(simpleWeightsFolder + "/" + getFileNameByDate(date, suffix, "dat"));
         ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(file.toPath()));
@@ -30,9 +28,9 @@ public class InOutOperations {
         oos.close();
     }
     
-    public static double[][] loadSimpleWeights(File file) throws IOException, ClassNotFoundException{
+    public static float[][] loadSimpleWeights(File file) throws IOException, ClassNotFoundException{
 	ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file.toPath()));
-        double[][] weights = (double[][]) ois.readObject();
+        float[][] weights = (float[][]) ois.readObject();
         ois.close();
         return weights; 
     }

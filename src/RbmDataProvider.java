@@ -1,7 +1,5 @@
-package main.java;
-
 import java.util.ArrayList;
-import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 /**
  *
@@ -18,9 +16,9 @@ public class RbmDataProvider implements DataProvider{
     }
 
     @Override
-    public DoubleMatrix loadMiniBatch(int index) {
-        DoubleMatrix originalData = dataProvider.loadMiniBatch(index);
-        DoubleMatrix hiddenData = rbms.getHidden(originalData);
+    public FloatMatrix loadMiniBatch(int index) {
+        FloatMatrix originalData = dataProvider.loadMiniBatch(index);
+        FloatMatrix hiddenData = rbms.getHidden(originalData);
         
         return hiddenData;
     }

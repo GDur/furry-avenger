@@ -1,5 +1,3 @@
-package main.java;
-
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,7 +5,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 /**
  *
@@ -28,23 +26,21 @@ public class TinyImagesDataProvider implements DataProvider {
     }
     
     @Override
-    public DoubleMatrix loadMiniBatch(int index) {
-        double[][] data = new double[numcases][];
+    public FloatMatrix loadMiniBatch(int index) {
+        float[][] data = new float[numcases][];
+        
         for(int i = 0; i < numcases; i++) {
             BufferedImage image  = loadTinyImage(index * numcases + i + offset);
             
-            //if(hasColor(image)) {
-            if(true) {
-                data[i] = DataConverter.processPixelLABData(image);
+            if(hasColor(image)) {
+                data[i] = DataConverter.processPixelRGBData(image);
             } else {
                 i--;
                 offset++;
             }
         }
         
-        //System.out.println("Loaded mini batch from " + (index * numcases + offset) + " to " + (index * numcases + numcases + offset) + " total offset is " + offset);
-        
-        return new DoubleMatrix(data);
+        return new FloatMatrix(data);
     }
         
     public BufferedImage loadTinyImage(long index) {
@@ -150,12 +146,12 @@ public class TinyImagesDataProvider implements DataProvider {
         }
 
     private static boolean hasColor(BufferedImage image) {
-        double threshold = 0.01;
+        float threshold = 0.01f;
         
-        double[] data = DataConverter.processPixelLABData(image);
+        float[] data = DataConverter.processPixelLABData(image);
         
-        double Cb = 0;
-        double Cr = 0;
+        float Cb = 0;
+        float Cr = 0;
         for(int i = 0; i < data.length / 3; i++) {
             int pixel = i * 3;
             

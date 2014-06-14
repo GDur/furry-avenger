@@ -1,8 +1,6 @@
-package main.java;
-
 import java.util.ArrayList;
 import java.util.ListIterator;
-import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 /**
  *
@@ -38,28 +36,30 @@ public class DeepRBM implements RBM{
             
             RBMSettings rbmSettings = deepRbmSettings.get(i);
             
-            rbms.add(new HintonRBM(rbmSettings, dataProvider));
+            rbms.add(new HintonRBMGaussianLinear(rbmSettings, dataProvider));
         }
         
     }
     
+    @Override
     public void train() {
         for (RBM rbm : rbms) {
             rbm.train();
         }
     }
     
-    public DoubleMatrix reconstruct(DoubleMatrix data) {
-       DoubleMatrix hidden = getHidden(data);
-       DoubleMatrix visible = getVisible(hidden);
+    public FloatMatrix reconstruct(FloatMatrix data) {
+       FloatMatrix hidden = getHidden(data);
+       FloatMatrix visible = getVisible(hidden);
        
        return visible;
     }
     
-    public DoubleMatrix getHidden(DoubleMatrix data) {
-        DoubleMatrix hiddenData = null;
+    @Override
+    public FloatMatrix getHidden(FloatMatrix data) {
+        FloatMatrix hiddenData = null;
         
-        DoubleMatrix visibleData = data;
+        FloatMatrix visibleData = data;
         
         for (RBM rbm : rbms) {
             hiddenData = rbm.getHidden(visibleData);
@@ -69,10 +69,11 @@ public class DeepRBM implements RBM{
         return hiddenData;
     }
     
-    public DoubleMatrix getVisible(DoubleMatrix data) {
-        DoubleMatrix visibleData = null;
+    @Override
+    public FloatMatrix getVisible(FloatMatrix data) {
+        FloatMatrix visibleData = null;
         
-        DoubleMatrix hiddenData = data;
+        FloatMatrix hiddenData = data;
 
         ListIterator<RBM> rbmListIterator = this.rbms.listIterator(this.rbms.size());
         while (rbmListIterator.hasPrevious()) {
