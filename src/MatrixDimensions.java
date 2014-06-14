@@ -1,6 +1,4 @@
-package main.java;
-
-import org.jblas.DoubleMatrix;
+import org.jblas.FloatMatrix;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -35,7 +33,7 @@ public final class MatrixDimensions {
    * Creates matrix dimensions from two matrices. Transpose behaviour is that
    * nothing will be transposed.
    */
-  public MatrixDimensions(DoubleMatrix a, DoubleMatrix b) {
+  public MatrixDimensions(FloatMatrix a, FloatMatrix b) {
     this(a, b, false, false);
   }
 
@@ -47,7 +45,7 @@ public final class MatrixDimensions {
    * @param transposeA true if transpose A
    * @param transposeB true if tranpose B
    */
-  public MatrixDimensions(DoubleMatrix a, DoubleMatrix b, boolean transposeA, boolean transposeB) {
+  public MatrixDimensions(FloatMatrix a, FloatMatrix b, boolean transposeA, boolean transposeB) {
     this.transposeA = transposeA;
     this.transposeB = transposeB;
     int m = a.getRows();
