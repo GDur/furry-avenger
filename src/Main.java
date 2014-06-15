@@ -15,10 +15,10 @@ public final class Main {
 
     int edgeLength = 32;
     int numcases = 128;
-    int numbatches = 1000;
+    int numbatches = 1;
 
     // RBM 1 
-    int maxepoch1 = 10;
+    int maxepoch1 = 1000;
 
     float epsilonw1 = 0.001f; // Learning rate for weights 
     float epsilonvb1 = 0.001f; // Learning rate for biases of visible units
@@ -34,7 +34,7 @@ public final class Main {
     int numbatches1 = numbatches;
 
     // RBM 2
-    int maxepoch2 = 5;
+    int maxepoch2 = 1000;
 
     float epsilonw2 = 0.001f; // Learning rate for weights 
     float epsilonvb2 = 0.001f; // Learning rate for biases of visible units
@@ -150,7 +150,7 @@ public final class Main {
 
         ArrayList<RBMSettings> deepRbmSettings = new ArrayList<>();
         deepRbmSettings.add(rbmSettings1);
-        //deepRbmSettings.add(rbmSettings2);
+        deepRbmSettings.add(rbmSettings2);
         //deepRbmSettings.add(rbmSettings3);
 
         DeepRBM deepRbm = new DeepRBM(deepRbmSettings, INPUT_IMAGES_PATH, edgeLength);
