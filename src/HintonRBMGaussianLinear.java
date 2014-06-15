@@ -110,7 +110,7 @@ public class HintonRBMGaussianLinear implements RBM {
             System.out.println("epoch: " + epoch);
               
             // errsum=0;
-            float errsum = 0; 
+            double errsum = 0; 
             
             // for batch = 1:numbatches,
             for(int batch = 0; batch < numbatches; batch++) {
@@ -168,7 +168,7 @@ public class HintonRBMGaussianLinear implements RBM {
                 // END OF NEGATIVE PHASE
                 
                 // err= sum(sum( (data-negdata).^2 )); 
-                float err = MatrixFunctions.pow(data.sub(negdata), 2).sum();
+                double err = MatrixFunctions.pow(data.sub(negdata), 2).sum();
                 // errsum = err + errsum;
                 errsum = err + errsum;
                 
@@ -203,11 +203,11 @@ public class HintonRBMGaussianLinear implements RBM {
                 System.out.println("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
             }
             
-            finalError = (float)(255.0f * Math.sqrt( (1.0d / (numdims * numcases * numbatches)) * errsum));
+            finalError = (float)(255.0d * Math.sqrt( (1.0d / (numdims * numcases * numbatches)) * errsum));
             
             System.out.println("Error: " + finalError);
   
-            //saveWeights(epoch);
+            saveWeights(epoch);
             dataProvider.reset();
         }
     }

@@ -18,14 +18,14 @@ public final class Main {
     int numbatches = 1000;
 
     // RBM 1 
-    int maxepoch1 = 5;
+    int maxepoch1 = 10;
 
     float epsilonw1 = 0.001f; // Learning rate for weights 
     float epsilonvb1 = 0.001f; // Learning rate for biases of visible units
     float epsilonhb1 = 0.001f; // Learning rate for biases of hidden units 
     float weightcost1 = 0.0002f;
     float initialmomentum1 = 0.5f;
-    float finalmomentum1 = 0.5f;//0.9f;
+    float finalmomentum1 = 0.5f; //0.9f;
 
     int numhid1 = 1024;
 
