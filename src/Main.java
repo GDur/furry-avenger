@@ -15,14 +15,14 @@ public final class Main {
 
     int edgeLength = 32;
     int numcases = 128;
-    int numbatches = 2000;
+    int numbatches = 1000;
 
     // RBM 1 
     int maxepoch1 = 5;
 
-    float epsilonw1 = 0.1f; // Learning rate for weights 
-    float epsilonvb1 = 0.1f; // Learning rate for biases of visible units
-    float epsilonhb1 = 0.1f; // Learning rate for biases of hidden units 
+    float epsilonw1 = 0.001f; // Learning rate for weights 
+    float epsilonvb1 = 0.001f; // Learning rate for biases of visible units
+    float epsilonhb1 = 0.001f; // Learning rate for biases of hidden units 
     float weightcost1 = 0.0002f;
     float initialmomentum1 = 0.5f;
     float finalmomentum1 = 0.5f; //0.9f;
@@ -30,7 +30,7 @@ public final class Main {
     int numhid1 = 1024;
 
     int numcases1 = numcases;
-    int numdims1 = edgeLength * edgeLength * 3;
+    int numdims1 = edgeLength * edgeLength * 4;
     int numbatches1 = numbatches;
     
     FloatMatrix vishid1 = null;//new FloatMatrix(InOutOperations.loadSimpleWeights("/Users/Radek/git/furry-avenger/128000_5epoch/2014_06_15_19_20_48_epoch4_weights.dat"));
@@ -143,7 +143,7 @@ public final class Main {
     public void testReconstruction(DeepRBM deepRbm) {
 
         File fileOriginal = new File("test_originalImage.png");
-        File fileBW = new File("test_bwImage.png");
+        File fileBW = new File("test_originalImage.png");
 
         BufferedImage imageOriginal = null;
         BufferedImage imageBW = null;
@@ -154,17 +154,17 @@ public final class Main {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        float[] dataOriginal = DataConverter.processPixelRGBData(imageOriginal);
-        float[] dataBW = DataConverter.processPixelRGBData(imageBW);
+        float[] dataOriginal = DataConverter.processPixelLRGBData(imageOriginal);
+        float[] dataBW = DataConverter.processPixelL1RGB0Data(imageOriginal);
 
         FloatMatrix dataMatrixOriginal = new FloatMatrix(1, dataOriginal.length, dataOriginal);
         FloatMatrix dataMatrixBW = new FloatMatrix(1, dataBW.length, dataBW);
 
         float[] reconstructedDataOriginal = deepRbm.reconstruct(dataMatrixOriginal).toArray();
-        BufferedImage reconstructedImageOriginal = DataConverter.pixelRGBDataToImage(reconstructedDataOriginal, 32, 32);
+        BufferedImage reconstructedImageOriginal = DataConverter.pixelLRGBDataToImage(reconstructedDataOriginal, 32, 32);
 
         float[] reconstructedDataBW = deepRbm.reconstruct(dataMatrixBW).toArray();
-        BufferedImage reconstructedImageBW = DataConverter.pixelRGBDataToImage(reconstructedDataBW, 32, 32);
+        BufferedImage reconstructedImageBW = DataConverter.pixelLRGBDataToImage(reconstructedDataBW, 32, 32);
 
         File outputfileReconstructedOriginal = new File("test_originalImage_recon.png");
         File outputfileReconstructedBW = new File("test_bw_recon.png");

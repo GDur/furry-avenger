@@ -33,7 +33,7 @@ public class TinyImagesDataProvider implements DataProvider {
             BufferedImage image  = loadTinyImage(index * numcases + i + offset);
             
             if(hasColor(image)) {
-                data[i] = DataConverter.processPixelRGBData(image);
+                data[i] = DataConverter.processPixelLRGBData(image);
             } else {
                 i--;
                 offset++;
