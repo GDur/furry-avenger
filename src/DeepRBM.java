@@ -36,7 +36,7 @@ public class DeepRBM implements RBM{
             
             RBMSettings rbmSettings = deepRbmSettings.get(i);
             
-            rbms.add(new HintonRBMGaussianLinear(rbmSettings, dataProvider));
+            rbms.add(new HintonRBMBernoulli(rbmSettings, dataProvider));
         }
         
     }

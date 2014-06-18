@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
@@ -55,7 +56,6 @@ public class HintonRBMGaussianLinear implements RBM {
     DataProvider dataProvider;
     
     public HintonRBMGaussianLinear(RBMSettings rbmSettings, DataProvider dataProvider) {
-
         this.maxepoch        = rbmSettings.getMaxepoch();
 
         this.epsilonw        = rbmSettings.getEpsilonw();
@@ -74,11 +74,11 @@ public class HintonRBMGaussianLinear implements RBM {
         this.dataProvider = dataProvider;
         
         // vishid       = 0.1*randn(numdims, numhid);
-        this.vishid          = FloatMatrix.randn(numdims, numhid).mmuli(0.01f);
+        this.vishid     = (rbmSettings.getVishid() == null) ? FloatMatrix.randn(numdims, numhid).mmuli(0.01f) : rbmSettings.getVishid();
         // hidbiases    = zeros(1,numhid);
-        this.hidbiases       = FloatMatrix.zeros(1, numhid);
+        this.hidbiases  = (rbmSettings.getHidbiases() == null) ? FloatMatrix.zeros(1, numhid) : rbmSettings.getHidbiases();
         //visbiases     = zeros(1,numdims);
-        this.visbiases       = FloatMatrix.zeros(1, numdims);
+        this.visbiases  = (rbmSettings.getVisbiases() == null) ? FloatMatrix.zeros(1, numdims) : rbmSettings.getVisbiases();
 
         // poshidprobs  = zeros(numcases,numhid);
         this.poshidprobs     = FloatMatrix.zeros(numcases,numhid);
@@ -98,7 +98,7 @@ public class HintonRBMGaussianLinear implements RBM {
         // sigmainc     = zeros(1,numhid);
         this.sigmainc        = FloatMatrix.zeros(1,numhid);
         
-        // batchposhidprobs=zeros(numcases,numhid,numbatches);
+        // batchposhidprobs=zeros(numcases,numhid,numbatches);   
     }
     
     @Override
@@ -115,7 +115,7 @@ public class HintonRBMGaussianLinear implements RBM {
             // for batch = 1:numbatches,
             for(int batch = 0; batch < numbatches; batch++) {
                 
-                long start = System.currentTimeMillis();
+                // long start = System.currentTimeMillis();
                 
                 //fprintf(1,'epoch %d batch %d\r',epoch,batch);
                 System.out.println("epoch: " + epoch + " batch: " + batch);
@@ -200,7 +200,7 @@ public class HintonRBMGaussianLinear implements RBM {
                 hidbiases = hidbiases.add(hidbiasinc);
                 
                 // END OF UPDATES
-                System.out.println("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
+                // System.out.println("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
             }
             
             finalError = (float)(255.0d * Math.sqrt( (1.0d / (numdims * numcases * numbatches)) * errsum));
@@ -213,20 +213,13 @@ public class HintonRBMGaussianLinear implements RBM {
     }
     
     @Override
-    public FloatMatrix getHidden(FloatMatrix visibleData) {
-        
-        poshidprobs = JCUDAMatrixUtils.multiply(visibleData, vishid);
-        poshidprobs = poshidprobs.add(hidbiases.repmat(visibleData.getRows(), 1));
-        //FloatMatrix poshidstates = poshidprobs.add(FloatMatrix.randn(1, numhid)); 
-
-        return poshidprobs;
+    public FloatMatrix getHidden(FloatMatrix visibleData) { 
+        return sigmoid(JCUDAMatrixUtils.multiply(visibleData.neg(), vishid).sub(hidbiases.repmat(visibleData.getRows(), 1)));
     }
     
     @Override
     public FloatMatrix getVisible(FloatMatrix hiddenData) {
-        FloatMatrix negdata = sigmoid(JCUDAMatrixUtils.multiply(hiddenData.neg(), vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
-        
-        return negdata;
+        return sigmoid(JCUDAMatrixUtils.multiply(sigmoidInverse(hiddenData).neg(), vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
     }
     
     public void saveWeights(int i) {
@@ -246,4 +239,12 @@ public class HintonRBMGaussianLinear implements RBM {
         return OneDivideNegExpPlusOneM;
     }
     
+    // ln(y/(1-y))
+    private FloatMatrix sigmoidInverse(FloatMatrix floatMatrix) {
+        FloatMatrix ones = FloatMatrix.ones(floatMatrix.getRows(), floatMatrix.getColumns());
+        FloatMatrix oneMinusY = ones.sub(floatMatrix);
+        FloatMatrix yDivOneMinusY = floatMatrix.div(oneMinusY);
+        FloatMatrix lnYDivOneMinusY = MatrixFunctions.log(yDivOneMinusY);
+        return lnYDivOneMinusY;
+    }
 }

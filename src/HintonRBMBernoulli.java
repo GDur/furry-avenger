@@ -11,7 +11,7 @@ import org.jblas.MatrixFunctions;
  *
  * @author Radek
  */
-public class HintonRBM implements RBM{
+public class HintonRBMBernoulli implements RBM{
    
     private static final Log LOG = LogFactory.getLog(HintonRBMGaussianLinear.class);
     
@@ -54,7 +54,7 @@ public class HintonRBM implements RBM{
     
     DataProvider dataProvider;
     
-    public HintonRBM(RBMSettings rbmSettings, DataProvider dataProvider) {
+    public HintonRBMBernoulli(RBMSettings rbmSettings, DataProvider dataProvider) {
 
         this.maxepoch        = rbmSettings.getMaxepoch();
 
@@ -140,10 +140,17 @@ public class HintonRBM implements RBM{
                 FloatMatrix posvisact = data.columnSums();
                 
                 // END OF POSITIVE PHASE
+            
+                // poshidstates = poshidprobs > rand(numcases,numhid);
+                FloatMatrix poshidstates = poshidprobs.gt(FloatMatrix.rand(numcases, numhid));
+                
+                if(epoch == maxepoch - 1) {
+                    poshidstates = poshidprobs;
+                }
                 
                 // START NEGATIVE PHASE
                 // negdata = 1./(1 + exp(-poshidstates*vishid' - repmat(visbiases,numcases,1)));
-                FloatMatrix negdata = sigmoid(JCUDAMatrixUtils.multiply(poshidprobs.neg(), vishid, false, true).sub(visbiases.repmat(numcases, 1)));
+                FloatMatrix negdata = sigmoid(JCUDAMatrixUtils.multiply(poshidstates.neg(), vishid, false, true).sub(visbiases.repmat(numcases, 1)));
                 
                 // neghidprobs = 1./(1 + exp(-negdata*vishid - repmat(hidbiases,numcases,1)))
                 neghidprobs = sigmoid((JCUDAMatrixUtils.multiply(negdata.neg(), vishid, false, false)).sub(hidbiases.repmat(numcases, 1)));

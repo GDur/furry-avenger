@@ -3,8 +3,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -28,11 +31,26 @@ public class InOutOperations {
         oos.close();
     }
     
-    public static float[][] loadSimpleWeights(File file) throws IOException, ClassNotFoundException{
-	ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(file.toPath()));
-        float[][] weights = (float[][]) ois.readObject();
-        ois.close();
-        return weights; 
+    public static float[][] loadSimpleWeights(String path){
+        float[][] weights = null;
+        
+        ObjectInputStream ois = null;
+        try {
+            File file = new File(path);
+            ois = new ObjectInputStream(Files.newInputStream(file.toPath()));
+            weights = (float[][]) ois.readObject();
+            ois.close(); 
+        } catch (IOException | ClassNotFoundException ex) {
+            Logger.getLogger(InOutOperations.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                ois.close();
+            } catch (IOException ex) {
+                Logger.getLogger(InOutOperations.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        return weights;
     }
     
     private static String getFileNameByDate(Date date, String suffix, String extension){

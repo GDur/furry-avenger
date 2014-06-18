@@ -1,3 +1,6 @@
+
+import org.jblas.FloatMatrix;
+
 /**
  * DataConverter
  *
@@ -19,6 +22,10 @@ public class RBMSettings {
     private int numcases;
     private int numdims;
     private int numbatches;
+    
+    private FloatMatrix vishid;
+    private FloatMatrix hidbiases;
+    private FloatMatrix visbiases;
 
     public RBMSettings() {
     }
@@ -110,5 +117,31 @@ public class RBMSettings {
     public void setNumbatches(int numbatches) {
         this.numbatches = numbatches;
     }
+
+    public FloatMatrix getVishid() {
+        return vishid;
+    }
+
+    public void setVishid(FloatMatrix vishid) {
+        this.vishid = vishid;
+    }
+
+    public FloatMatrix getHidbiases() {
+        return hidbiases;
+    }
+
+    public void setHidbiases(FloatMatrix hidbiases) {
+        this.hidbiases = hidbiases;
+    }
+
+    public FloatMatrix getVisbiases() {
+        return visbiases;
+    }
+
+    public void setVisbiases(FloatMatrix visbiases) {
+        this.visbiases = visbiases;
+    }
+    
+    
 
 }
