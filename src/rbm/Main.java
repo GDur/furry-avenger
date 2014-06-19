@@ -1,5 +1,7 @@
 package rbm;
 
+import data.DataConverter;
+import data.InOutOperations;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;

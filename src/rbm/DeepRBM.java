@@ -16,7 +16,7 @@ public class DeepRBM implements RBM{
         this.rbms = rbms;
     }
 
-    DeepRBM(ArrayList<RBMSettings> deepRbmSettings, String path, int edgeLength) {
+    public DeepRBM(ArrayList<RBMSettings> deepRbmSettings, String path, int edgeLength) {
         this.rbms = new ArrayList<>();
         
         DataProvider originalDataProvider = new TinyImagesDataProvider(path, deepRbmSettings.get(0).getNumcases(), edgeLength);

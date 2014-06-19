@@ -1,15 +1,15 @@
-package rbm;
+package data;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -20,6 +20,26 @@ import org.apache.commons.io.FileUtils;
 public class InOutOperations {
     private static final String simpleWeightsFolder = "Output/SimpleWeights";
     private static final String imageExportFolder = "Output/ImageExport"; 
+    
+    public static DataSet[] loadImages(File path, int edgeLength, int padding, boolean binarize, boolean invert, float minData, float maxData, boolean isRGB) throws IOException {
+
+        final File[] imageFiles = path.listFiles((File dir, String name) -> (name.endsWith("jpg") || name.endsWith("png") || name.endsWith("gif")));
+
+        int size = edgeLength * edgeLength;
+        DataSet[] result = new DataSet[imageFiles.length];
+
+        for (int i = 0; i < imageFiles.length; i++) {
+            float[] imageData;
+            imageData = DataConverter.processPixelData(ImageIO.read(imageFiles[i]), edgeLength, binarize, invert, minData, maxData, isRGB);
+            // Pad does not work with RGB images
+            //imageData = DataConverter.pad(imageData, edgeLength, padding);
+
+            String label = imageFiles[i].getName().split("_")[0];
+            result[i] = new DataSet(imageData, label);
+        }
+
+        return result;
+    }
     
     public static void saveSimpleWeights(float[][] weights, Date date) throws IOException{
         saveSimpleWeights(weights, date, "weights");

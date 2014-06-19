@@ -1,5 +1,6 @@
 package rbm;
 
+import data.DataConverter;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
