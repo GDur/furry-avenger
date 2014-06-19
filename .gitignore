@@ -2,3 +2,4 @@ target
 /nbproject/private/
 /build/
 /dist/
+Output/SimpleWeights/*
