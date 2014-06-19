@@ -211,7 +211,7 @@ public class HintonRBMGaussianLinear implements RBM {
             
             System.out.println("Error: " + finalError);
   
-            saveWeights();
+            saveWeights(epoch);
             dataProvider.reset();
         }
     }
@@ -226,26 +226,15 @@ public class HintonRBMGaussianLinear implements RBM {
         return sigmoid(JCUDAMatrixUtils.multiply(sigmoidInverse(hiddenData).neg(), vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
     }
     
-    public void saveWeights(){
-        try {
-            InOutOperations.saveSimpleWeights(vishid.toArray2(), date, "weights");
-            InOutOperations.saveSimpleWeights(hidbiases.toArray2(), date, "hidbiases");
-            InOutOperations.saveSimpleWeights(visbiases.toArray2(), date, "visbiases");
-        } catch (IOException ex) {
-            Logger.getLogger(HintonRBMGaussianLinear.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    /*
     public void saveWeights(int i) {
         try {
-            InOutOperations.saveSimpleWeights(vishid.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_weights");
-            InOutOperations.saveSimpleWeights(hidbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_hidbiases");
-            InOutOperations.saveSimpleWeights(visbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_visbiases");
+            InOutOperations.saveSimpleWeights(vishid.toArray2(), date, "epoch" + i + "_weights");
+            InOutOperations.saveSimpleWeights(hidbiases.toArray2(), date, "epoch" + i + "_hidbiases");
+            InOutOperations.saveSimpleWeights(visbiases.toArray2(), date, "epoch" + i + "_visbiases");
         } catch (IOException ex) {
             Logger.getLogger(HintonRBMGaussianLinear.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    */
 
     private FloatMatrix sigmoid(FloatMatrix floatMatrix) {
         final FloatMatrix negExpM = MatrixFunctions.exp(floatMatrix);
