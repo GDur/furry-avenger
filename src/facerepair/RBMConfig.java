@@ -6,6 +6,7 @@
 
 package facerepair;
 
+import data.InOutOperations;
 import java.io.File;
 import org.jblas.FloatMatrix;
 import rbm.DataProvider;
@@ -66,7 +67,9 @@ public class RBMConfig {
         
         
         if(loadWeights){
-            
+            vishid1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_18_13_16_23_epoch4_weights.dat"));
+            hidbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_18_13_16_23_epoch4_hidbiases.dat"));
+            visbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_18_13_16_23_epoch4_visbiases.dat"));
         }
         
         HintonRBMGaussianLinear rbm1 = new HintonRBMGaussianLinear(rbmSettings1, provider);

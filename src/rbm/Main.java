@@ -37,9 +37,9 @@ public final class Main {
     int numdims1 = edgeLength * edgeLength * 4;
     int numbatches1 = numbatches;
     
-    FloatMatrix vishid1 = new FloatMatrix(InOutOperations.loadSimpleWeights("/Users/Radek/git/furry-avenger/Output/SimpleWeights/2014_06_18_13_16_23_epoch4_weights.dat"));
-    FloatMatrix hidbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("/Users/Radek/git/furry-avenger/Output/SimpleWeights/2014_06_18_13_16_23_epoch4_hidbiases.dat"));
-    FloatMatrix visbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("/Users/Radek/git/furry-avenger/Output/SimpleWeights/2014_06_18_13_16_23_epoch4_visbiases.dat"));
+    FloatMatrix vishid1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_18_13_16_23_epoch4_weights.dat"));
+    FloatMatrix hidbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_18_13_16_23_epoch4_hidbiases.dat"));
+    FloatMatrix visbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_18_13_16_23_epoch4_visbiases.dat"));
     
     // RBM 2
     int maxepoch2 = 5;
