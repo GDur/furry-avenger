@@ -27,14 +27,14 @@ public class RBMConfig {
     private int numbatches = 1000;
 
     // RBM 1 
-    private int maxepoch1 = 10;
+    private int maxepoch1 = 20;
 
     private float epsilonw1 = 0.001f; // Learning rate for weights 
     private float epsilonvb1 = 0.001f; // Learning rate for biases of visible units
     private float epsilonhb1 = 0.001f; // Learning rate for biases of hidden units 
     private float weightcost1 = 0.0002f;
-    private float initialmomentum1 = 0.5f;
-    private float finalmomentum1 = 0.5f; //0.9f;
+    private float initialmomentum1 = 0.2f;
+    private float finalmomentum1 = 0.2f; //0.9f;
     private int numhid1 = 3000;   
     private int numcases1 = numcases;
     private int numdims1 = edgeLength * edgeLength * 3;
