@@ -15,7 +15,7 @@ import rbm.RBM;
 public class MainTraining {
 
     public static void main(String[] args){ 
-        RBMConfig config = new RBMConfig(false);
+        RBMConfig config = new RBMConfig(false, true);
         RBM[] rbms = config.getRBMs();
         System.out.println("RBMs loaded");
         for(int i = 0; i < rbms.length; ++i){
