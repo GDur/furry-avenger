@@ -27,7 +27,7 @@ public class MainTest {
     private static final String IMAGES_NOT_TRAINED_INCOMPLETE = "D:\\image_sets\\rbm_face_images_png\\1000_images_not_trained_incomplete";
     
     public static void main(String[] args){
-        RBMConfig config = new RBMConfig(true); 
+        RBMConfig config = new RBMConfig(true, false); 
         RBM[] rbms = config.getRBMs();
         System.out.println("RBMs loaded");
         

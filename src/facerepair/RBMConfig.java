@@ -10,6 +10,7 @@ import data.InOutOperations;
 import java.io.File;
 import org.jblas.FloatMatrix;
 import rbm.DataProvider;
+import rbm.HintonRBMBernoulli;
 import rbm.HintonRBMGaussianLinear;
 import rbm.RBM;
 import rbm.RBMSettings;
@@ -45,9 +46,12 @@ public class RBMConfig {
     
     private final RBM[] rbms;
     
-    public RBMConfig(boolean loadWeights){
-        DataProvider provider = new TrainingDataProvider(new File(INPUT_IMAGES_PATH), edgeLength, numcases);
-        System.out.println("pics loaded");
+    public RBMConfig(boolean loadWeights, boolean initializeDataprovider){
+        DataProvider provider = null;
+        if(initializeDataprovider){
+            provider = new TrainingDataProvider(new File(INPUT_IMAGES_PATH), edgeLength, numcases);
+            System.out.println("pics loaded");
+        } 
         
         RBMSettings rbmSettings1 = new RBMSettings();
         rbmSettings1.setMaxepoch(maxepoch1);
@@ -72,7 +76,7 @@ public class RBMConfig {
             visbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_18_13_16_23_epoch4_visbiases.dat"));
         }
         
-        HintonRBMGaussianLinear rbm1 = new HintonRBMGaussianLinear(rbmSettings1, provider);
+        HintonRBMBernoulli rbm1 = new HintonRBMBernoulli(rbmSettings1, provider);
         rbms = new RBM[]{rbm1};
     }
     
