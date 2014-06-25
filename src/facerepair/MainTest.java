@@ -82,11 +82,11 @@ public class MainTest {
     }
     
     private static void compareArraysForError(float[][] reconData, float[][] compareData, String testName) throws IOException{
-        String dirString = "Output\\" + testName;
+        String dirString = "Output/" + testName;
         InOutOperations.mkdir(dirString);
         
         FileWriter writer = null;
-        writer = new FileWriter(dirString + "\\results.txt");
+        writer = new FileWriter(dirString + "/results.txt");
 
         String newLine = System.getProperty("line.separator");
         
@@ -105,7 +105,7 @@ public class MainTest {
             finalMeanError += imageError;
             
             BufferedImage bi = DataConverter.pixelDataToImage(reconData[i], 0.0f, true);
-            File imageOut = new File(dirString + "\\recon" + i + ".png");
+            File imageOut = new File(dirString + "/recon" + i + ".png");
             ImageIO.write(bi, "png", imageOut);        
         }
         

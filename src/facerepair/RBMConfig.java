@@ -10,6 +10,7 @@ import data.InOutOperations;
 import java.io.File;
 import org.jblas.FloatMatrix;
 import rbm.DataProvider;
+import rbm.HintonRBM;
 import rbm.HintonRBMBernoulli;
 import rbm.HintonRBMGaussianLinear;
 import rbm.RBM;
@@ -28,7 +29,9 @@ public class RBMConfig {
     private int numbatches = 1000;
 
     // RBM 1 
-    private int maxepoch1 = 5;
+    private int maxepoch1 = 20;
+    private int numhid1 = 4000;
+    private int numdims1 = edgeLength * edgeLength * 3;
 
     private float epsilonw1 = 0.001f; // Learning rate for weights 
     private float epsilonvb1 = 0.001f; // Learning rate for biases of visible units
@@ -36,9 +39,8 @@ public class RBMConfig {
     private float weightcost1 = 0.0002f;
     private float initialmomentum1 = 0.2f;
     private float finalmomentum1 = 0.2f; //0.9f;
-    private int numhid1 = 3000;   
+     
     private int numcases1 = numcases;
-    private int numdims1 = edgeLength * edgeLength * 3;
     private int numbatches1 = numbatches;
     private FloatMatrix vishid1 = null;
     private FloatMatrix hidbiases1 = null;
@@ -71,12 +73,14 @@ public class RBMConfig {
         
         
         if(loadWeights){
-            vishid1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_25_11_05_43_epoch2_weights.dat"));
-            hidbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_25_11_05_43_epoch2_hidbiases.dat"));
-            visbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_25_11_05_43_epoch2_visbiases.dat"));
+            vishid1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output\\SimpleWeights\\2014_06_25_21_57_04_epoch8_weights.dat"));
+            hidbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output\\SimpleWeights\\2014_06_25_21_57_05_epoch8_hidbiases.dat"));
+            visbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output\\SimpleWeights\\2014_06_25_21_57_05_epoch8_visbiases.dat"));
+            System.out.println("weights loaded");
         }
         
-        HintonRBMBernoulli rbm1 = new HintonRBMBernoulli(rbmSettings1, provider);
+        
+        RBM rbm1 = new HintonRBM(rbmSettings1, provider);
         rbms = new RBM[]{rbm1};
     }
     
