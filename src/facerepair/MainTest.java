@@ -6,12 +6,16 @@
 
 package facerepair;
 
+import data.DataConverter;
 import data.DataSet;
 import data.InOutOperations;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import org.jblas.FloatMatrix;
 import rbm.RBM;
 
@@ -31,48 +35,85 @@ public class MainTest {
         RBM[] rbms = config.getRBMs();
         System.out.println("RBMs loaded");
         
-        reconstructionTest(rbms, config.getEdgeLength(), new File(IMAGES_TRAINED));
-        
+        try {
+            reconstructionTest(rbms, config.getEdgeLength(), new File(IMAGES_TRAINED), new File(IMAGES_TRAINED), "IMAGES_TRAINED");
+            //reconstructionTest(rbms, config.getEdgeLength(), new File(IMAGES_TRAINED_INCOMPLETE), new File(IMAGES_TRAINED), "IMAGES_TRAINED_INCOMPLETE");
+            //reconstructionTest(rbms, config.getEdgeLength(), new File(IMAGES_NOT_TRAINED), new File(IMAGES_NOT_TRAINED), "IMAGES_NOT_TRAINED");
+            //reconstructionTest(rbms, config.getEdgeLength(), new File(IMAGES_NOT_TRAINED_INCOMPLETE), new File(IMAGES_NOT_TRAINED), "IMAGES_NOT_TRAINED_INCOMPLETE");
+        } catch (IOException ex) {
+            Logger.getLogger(MainTest.class.getName()).log(Level.SEVERE, null, ex);
+        }     
     }
     
-    private static void reconstructionTest(RBM[] rbms, int edgeLength, File path){
-        DataSet[] dataset = null;
+    private static void reconstructionTest(RBM[] rbms, int edgeLength, File testData, File compareData, String testName) throws IOException{
+        System.out.println("Starting Test: " + testName);
+        DataSet[] testDataSet = null;
+        DataSet[] compareDataSet = null;
         try {
-            dataset = InOutOperations.loadImages(path, edgeLength, 0, false, false, 0.0f, 1.0f, true);
+            testDataSet = InOutOperations.loadImages(testData, edgeLength, 0, false, false, 0.0f, 1.0f, true);
+            compareDataSet = InOutOperations.loadImages(compareData, edgeLength, 0, false, false, 0.0f, 1.0f, true);
         } catch (IOException ex) {
             Logger.getLogger(MainTest.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        float[][] testdata = new float[dataset.length][];
-        for(int i = 0; i < dataset.length; ++i){
-            testdata[i] = dataset[i].getData();
+        if(testDataSet.length != compareDataSet.length){
+            System.out.println("test data length != compare data length");
+            return;
         }
         
-        FloatMatrix data = new FloatMatrix(testdata);
+        float[][] testDataFloat = new float[testDataSet.length][];
+        float[][] compareDataFloat = new float[compareDataSet.length][];
+        for(int i = 0; i < testDataSet.length; ++i){
+            testDataFloat[i] = testDataSet[i].getData();
+            compareDataFloat[i] = compareDataSet[i].getData();
+        }
+        
+        FloatMatrix reconData = new FloatMatrix(testDataFloat);
         for(int i = 0; i < rbms.length; ++i){
-            data = rbms[i].getHidden(data);
+            reconData = rbms[i].getHidden(reconData);
         }
-        for(int i = rbms.length - 1; i >= 0; ++i){
-            data = rbms[i].getVisible(data);
+        for(int i = rbms.length - 1; i >= 0; --i){
+            reconData = rbms[i].getVisible(reconData);
         }
         
-        float[][] recondata = data.toArray2();
+        float[][] reconDataFloat = reconData.toArray2();
         
-        compareArraysForError(testdata, recondata);
+        compareArraysForError(reconDataFloat, compareDataFloat, testName);
     }
     
-    private static void compareArraysForError(float[][] A, float[][] B){
-        float totalError = 0.0f;
-        for(int i = 0; i < A.length; ++i){
+    private static void compareArraysForError(float[][] reconData, float[][] compareData, String testName) throws IOException{
+        String dirString = "Output\\" + testName;
+        InOutOperations.mkdir(dirString);
+        
+        FileWriter writer = null;
+        writer = new FileWriter(dirString + "\\results.txt");
+
+        String newLine = System.getProperty("line.separator");
+        
+        float finalMeanError = 0.0f;
+        for(int i = 0; i < reconData.length; ++i){
             float imageError = 0.0f;
-            for(int j = 0; j < A[0].length; ++j){
-                imageError += Math.abs(A[i][j] - B[i][j]);
+            for(int j = 0; j < reconData[i].length; ++j){
+                imageError += Math.abs(reconData[i][j] - compareData[i][j]);
             }
-            imageError = imageError / A[0].length;
-            System.out.println("image " + (i+1) + ": error " + imageError);
-            totalError += imageError;
+            imageError /= reconData[i].length;
+            String errorOut = "image " + (i+1) + " error: " + imageError;
+            
+            System.out.println(errorOut);
+            writer.write(errorOut + newLine);
+
+            finalMeanError += imageError;
+            
+            BufferedImage bi = DataConverter.pixelDataToImage(reconData[i], 0.0f, true);
+            File imageOut = new File(dirString + "\\recon" + i + ".png");
+            ImageIO.write(bi, "png", imageOut);        
         }
-        totalError /= A.length;
-        System.out.println("total error " + totalError);
+        
+        finalMeanError /= reconData.length;
+        
+        String finalOut = "final mean error: " + finalMeanError;
+        System.out.println(finalOut);       
+        writer.write(finalOut + newLine);
+        writer.close();
     }
 }

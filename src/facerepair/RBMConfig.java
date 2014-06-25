@@ -28,7 +28,7 @@ public class RBMConfig {
     private int numbatches = 1000;
 
     // RBM 1 
-    private int maxepoch1 = 20;
+    private int maxepoch1 = 5;
 
     private float epsilonw1 = 0.001f; // Learning rate for weights 
     private float epsilonvb1 = 0.001f; // Learning rate for biases of visible units
@@ -71,9 +71,9 @@ public class RBMConfig {
         
         
         if(loadWeights){
-            vishid1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_18_13_16_23_epoch4_weights.dat"));
-            hidbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_18_13_16_23_epoch4_hidbiases.dat"));
-            visbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_18_13_16_23_epoch4_visbiases.dat"));
+            vishid1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_25_11_05_43_epoch2_weights.dat"));
+            hidbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_25_11_05_43_epoch2_hidbiases.dat"));
+            visbiases1 = new FloatMatrix(InOutOperations.loadSimpleWeights("Output/SimpleWeights/2014_06_25_11_05_43_epoch2_visbiases.dat"));
         }
         
         HintonRBMBernoulli rbm1 = new HintonRBMBernoulli(rbmSettings1, provider);
