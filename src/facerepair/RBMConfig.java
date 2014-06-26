@@ -21,7 +21,6 @@ import rbm.RBMSettings;
  * @author christoph
  */
 public class RBMConfig {
-    
     private final String INPUT_IMAGES_PATH = "D:\\image_sets\\rbm_face_images_png\\training_set";
     
     private int edgeLength = 64;
