@@ -17,6 +17,8 @@ public class HintonRBMBernoulli implements RBM{
    
     private static final Log LOG = LogFactory.getLog(HintonRBMGaussianLinear.class);
     
+    boolean withTest;
+    
     int maxepoch;
     
     float epsilonw; 
@@ -57,6 +59,7 @@ public class HintonRBMBernoulli implements RBM{
     DataProvider dataProvider;
     
     public HintonRBMBernoulli(RBMSettings rbmSettings, DataProvider dataProvider) {
+        this.withTest        = rbmSettings.isWithTest();
 
         this.maxepoch        = rbmSettings.getMaxepoch();
 
@@ -76,11 +79,11 @@ public class HintonRBMBernoulli implements RBM{
         this.dataProvider = dataProvider;
         
         // vishid       = 0.1*randn(numdims, numhid);
-        this.vishid          = FloatMatrix.randn(numdims, numhid).mmuli(0.01f);
+        this.vishid     = (rbmSettings.getVishid() == null) ? FloatMatrix.randn(numdims, numhid).mmuli(0.01f) : rbmSettings.getVishid();
         // hidbiases    = zeros(1,numhid);
-        this.hidbiases       = FloatMatrix.zeros(1, numhid);
+        this.hidbiases  = (rbmSettings.getHidbiases() == null) ? FloatMatrix.zeros(1, numhid) : rbmSettings.getHidbiases();
         //visbiases     = zeros(1,numdims);
-        this.visbiases       = FloatMatrix.zeros(1, numdims);
+        this.visbiases  = (rbmSettings.getVisbiases() == null) ? FloatMatrix.zeros(1, numdims) : rbmSettings.getVisbiases();
 
         // poshidprobs  = zeros(numcases,numhid);
         this.poshidprobs     = FloatMatrix.zeros(numcases,numhid);
@@ -108,16 +111,17 @@ public class HintonRBMBernoulli implements RBM{
     
         // for epoch = epoch:maxepoch,
         for(int epoch = 0; epoch < maxepoch; epoch++) {
+            
             // fprintf(1,'epoch %d\r',epoch);
             System.out.println("epoch: " + epoch);
               
             // errsum=0;
-            double errsum = 0; 
+            float errsum = 0; 
             
             // for batch = 1:numbatches,
             for(int batch = 0; batch < numbatches; batch++) {
                 
-                long start = System.currentTimeMillis();
+                //long start = System.currentTimeMillis();
                 
                 //fprintf(1,'epoch %d batch %d\r',epoch,batch);
                 System.out.println("epoch: " + epoch + " batch: " + batch);
@@ -169,7 +173,7 @@ public class HintonRBMBernoulli implements RBM{
                 // END OF NEGATIVE PHASE
                 
                 // err= sum(sum( (data-negdata).^2 )); 
-                double err = MatrixFunctions.pow(data.sub(negdata), 2).sum();
+                float err = MatrixFunctions.pow(data.sub(negdata), 2).sum();
                 // errsum = err + errsum;
                 errsum = err + errsum;
                 
@@ -204,9 +208,31 @@ public class HintonRBMBernoulli implements RBM{
                 //LOG.info("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
             }
             
-            finalError = (float)(255.0d * Math.sqrt( (1.0d / (numdims * numcases * numbatches)) * errsum));
+            finalError = (float)(255.0d * Math.sqrt(errsum / (numdims * numcases * numbatches)));
             
             System.out.println("Error: " + finalError);
+            
+            if(withTest) {
+                float cverrsum = 0;
+                
+                int numCvBatches = (int)(numbatches * 0.1);
+                
+                for(int cvBatch = 0; cvBatch < numCvBatches; cvBatch++) {
+                    FloatMatrix cvData = dataProvider.loadCvMiniBatch(numcases*numbatches, cvBatch);
+                    
+                    FloatMatrix cvHidden = getHidden(cvData);
+                    FloatMatrix cvVisible = getVisible(cvHidden);
+                
+                    float err = MatrixFunctions.pow(cvData.sub(cvVisible), 2).sum();
+                    // errsum = err + errsum;
+                    cverrsum = err + cverrsum;
+                    
+                }
+                
+                float cvFinalError = (float)(255.0 * Math.sqrt( (1.0 / (numdims * numcases * numCvBatches)) * cverrsum));
+                
+                System.out.println("CV - Error: " + cvFinalError);
+            }
   
             //saveWeights(epoch);
             dataProvider.reset();
@@ -215,7 +241,7 @@ public class HintonRBMBernoulli implements RBM{
     
     @Override
     public FloatMatrix getHidden(FloatMatrix visibleData) {
-        return sigmoid(JCUDAMatrixUtils.multiply(visibleData.neg(), vishid, false, false).sub(hidbiases.repmat(visibleData.getRows(), 1)));
+        return sigmoid(JCUDAMatrixUtils.multiply(visibleData.neg(), vishid, false, false).sub(hidbiases.repmat(visibleData.getRows(), 1))).gt(FloatMatrix.rand(visibleData.getRows(), numhid));
     }
     
     @Override

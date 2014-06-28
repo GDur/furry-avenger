@@ -24,6 +24,14 @@ public class RbmDataProvider implements DataProvider{
         
         return hiddenData;
     }
+    
+    @Override
+    public FloatMatrix loadCvMiniBatch(int offset, int index) {
+        FloatMatrix originalData = dataProvider.loadMiniBatch(index);
+        FloatMatrix hiddenData = rbms.getHidden(originalData);
+        
+        return hiddenData;
+    }
 
     @Override
     public void reset() {

@@ -1,6 +1,5 @@
 package rbm;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
@@ -17,6 +16,8 @@ import org.jblas.MatrixFunctions;
 public class HintonRBMGaussianLinear implements RBM {
    
     private static final Log LOG = LogFactory.getLog(HintonRBMGaussianLinear.class);
+    
+    boolean withTest;
     
     int maxepoch;
     
@@ -57,7 +58,11 @@ public class HintonRBMGaussianLinear implements RBM {
     
     DataProvider dataProvider;
     
+    float max = Float.MIN_VALUE, min = Float.MAX_VALUE;
+    
     public HintonRBMGaussianLinear(RBMSettings rbmSettings, DataProvider dataProvider) {
+        this.withTest        = rbmSettings.isWithTest();
+        
         this.maxepoch        = rbmSettings.getMaxepoch();
 
         this.epsilonw        = rbmSettings.getEpsilonw();
@@ -112,7 +117,7 @@ public class HintonRBMGaussianLinear implements RBM {
             System.out.println("epoch: " + epoch);
               
             // errsum=0;
-            double errsum = 0; 
+            float errsum = 0; 
             
             // for batch = 1:numbatches,
             for(int batch = 0; batch < numbatches; batch++) {
@@ -125,14 +130,20 @@ public class HintonRBMGaussianLinear implements RBM {
                 // START POSITIVE PHASE
                 // data = batchdata(:,:,batch);
                 FloatMatrix data = dataProvider.loadMiniBatch(batch);
+
                 //float[][] dataArray = {{0.5, 0.2, 0.4, 0.5, 0.8},{0.3, 0.4, 0.7, 0.0, 0.9},{0.1, 0.2, 0.3, 0.4, 0.5}};
                 //FloatMatrix testDataMatrix = new FloatMatrix(dataArray);
                 
                 // poshidprobs =  (data*vishid) + repmat(hidbiases,numcases,1);
-                poshidprobs = JCUDAMatrixUtils.multiply(data, vishid);
-                poshidprobs = poshidprobs.add(hidbiases.repmat(numcases, 1));
+                poshidprobs = JCUDAMatrixUtils.multiply(data, vishid).add(hidbiases.repmat(numcases, 1));
                 
                 // batchposhidprobs(:,:,batch)=poshidprobs;
+                
+                // Save max and min which will be used for normalization
+                float batchMax = poshidprobs.max();
+                float batchMin = poshidprobs.min();
+                if(batchMax > this.max) { this.max = batchMax; }
+                if(batchMin < this.min) { this.min = batchMin; }
                 
                 // posprods = data' * poshidprobs;
                 posprods = JCUDAMatrixUtils.multiply(data, poshidprobs, true, false);
@@ -145,8 +156,9 @@ public class HintonRBMGaussianLinear implements RBM {
                 // END OF POSITIVE PHASE
             
                 // poshidstates = poshidprobs+randn(numcases,numhid);
-                FloatMatrix poshidstates = poshidprobs;//.add(FloatMatrix.randn(numcases, numhid));
+                FloatMatrix poshidstates = poshidprobs.add(FloatMatrix.randn(numcases, numhid));
                 
+                // Uing probs in last epoch as suggested by Hinton's practical guide
                 if(epoch == maxepoch - 1) {
                     poshidstates = poshidprobs;
                 }
@@ -170,7 +182,7 @@ public class HintonRBMGaussianLinear implements RBM {
                 // END OF NEGATIVE PHASE
                 
                 // err= sum(sum( (data-negdata).^2 )); 
-                double err = MatrixFunctions.pow(data.sub(negdata), 2).sum();
+                float err = MatrixFunctions.pow(data.sub(negdata), 2).sum();
                 // errsum = err + errsum;
                 errsum = err + errsum;
                 
@@ -205,23 +217,48 @@ public class HintonRBMGaussianLinear implements RBM {
                 // System.out.println("GPU took: " + (System.currentTimeMillis() - start) / 1000f + "s!");
             }
             
-            finalError = (float)(255.0d * Math.sqrt( (1.0d / (numdims * numcases * numbatches)) * errsum));
+            finalError = (float)(255.0 * Math.sqrt( (1.0 / (numdims * numcases * numbatches)) * errsum));
             
             System.out.println("Error: " + finalError);
+            
+            if(withTest) {
+                float cverrsum = 0;
+                
+                int numCvBatches = (int)(numbatches * 0.1);
+                
+                for(int cvBatch = 0; cvBatch < numCvBatches; cvBatch++) {
+                    FloatMatrix cvData = dataProvider.loadCvMiniBatch(numcases*numbatches, cvBatch);
+                    
+                    FloatMatrix cvHidden = getHidden(cvData);
+                    FloatMatrix cvVisible = getVisible(cvHidden);
+                
+                    float err = MatrixFunctions.pow(cvData.sub(cvVisible), 2).sum();
+                    
+                    cverrsum = err + cverrsum;
+                }
+                
+                float cvFinalError = (float)(255.0 * Math.sqrt( (1.0 / (numdims * numcases * numCvBatches)) * cverrsum));
+                
+                System.out.println("CV - Error: " + cvFinalError);
+            }
   
-            saveWeights(epoch);
+            //saveWeights(epoch);
             dataProvider.reset();
         }
     }
     
     @Override
     public FloatMatrix getHidden(FloatMatrix visibleData) { 
-        return sigmoid(JCUDAMatrixUtils.multiply(visibleData.neg(), vishid).sub(hidbiases.repmat(visibleData.getRows(), 1)));
+        //return sigmoid(JCUDAMatrixUtils.multiply(visibleData.neg(), vishid).sub(hidbiases.repmat(visibleData.getRows(), 1)));
+        //return JCUDAMatrixUtils.multiply(visibleData, vishid).add(hidbiases.repmat(visibleData.getRows(), 1));
+        return normalize(JCUDAMatrixUtils.multiply(visibleData, vishid).add(hidbiases.repmat(visibleData.getRows(), 1)));
     }
     
     @Override
     public FloatMatrix getVisible(FloatMatrix hiddenData) {
-        return sigmoid(JCUDAMatrixUtils.multiply(sigmoidInverse(hiddenData).neg(), vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
+        //return sigmoid(JCUDAMatrixUtils.multiply(sigmoidInverse(hiddenData).neg(), vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
+        //return sigmoid(JCUDAMatrixUtils.multiply(hiddenData.neg(), vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
+        return sigmoid(JCUDAMatrixUtils.multiply(deNormalize(hiddenData).neg(), vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
     }
     
     public void saveWeights(int i) {
@@ -232,6 +269,18 @@ public class HintonRBMGaussianLinear implements RBM {
         } catch (IOException ex) {
             Logger.getLogger(HintonRBMGaussianLinear.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    private FloatMatrix normalize(FloatMatrix data) {
+        FloatMatrix normalized = data.sub(min).div(max - min);
+        
+        return normalized;
+    }
+    
+    private FloatMatrix deNormalize(FloatMatrix data) {
+        FloatMatrix denormalized = data.mmul(max - min).add(min);
+        
+        return denormalized;
     }
 
     private FloatMatrix sigmoid(FloatMatrix floatMatrix) {

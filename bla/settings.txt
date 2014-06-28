@@ -1,0 +1,17 @@
+    int edgeLength = 32;
+    int numcases = 128;
+    int numbatches = 1000;
+
+    // RBM 1 
+    int maxepoch1 = 5;
+
+    double epsilonw1 = 0.001; // Learning rate for weights 
+    double epsilonvb1 = 0.001; // Learning rate for biases of visible units
+    double epsilonhb1 = 0.001; // Learning rate for biases of hidden units 
+    double weightcost1 = 1;
+    double initialmomentum1 = 0.5;
+    double finalmomentum1 = 0.5; //0.9d;
+
+    int numhid1 = 1024;
+
+ycbcr10

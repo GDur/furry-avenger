@@ -20,11 +20,13 @@ public class TinyImagesDataProvider implements DataProvider {
     private final String path;
     private final int numcases;
     private final int edgeLength;
+    private final Convert convert;
     
-    public TinyImagesDataProvider(String path, int numcases, int edgeLength) {
+    public TinyImagesDataProvider(String path, int numcases, int edgeLength, Convert convert) {
         this.path = path;
         this.numcases = numcases;
         this.edgeLength = edgeLength;
+        this.convert = convert;
     }
     
     @Override
@@ -32,14 +34,54 @@ public class TinyImagesDataProvider implements DataProvider {
         float[][] data = new float[numcases][];
         
         for(int i = 0; i < numcases; i++) {
-            BufferedImage image  = loadTinyImage(index * numcases + i + offset);
+            BufferedImage image = loadTinyImage(index * numcases + i);
             
-            if(hasColor(image)) {
-                data[i] = DataConverter.processPixelLRGBData(image);
-            } else {
-                i--;
-                offset++;
+            switch(convert){
+                case Y : data[i] = DataConverter.processPixelYData(image);
+                break;
+                case YCBCR : data[i] = DataConverter.processPixelYCbCrData(image, 10);
+                break;
+                case YCBCR420Data : data[i] = DataConverter.processPixelYCbCr420Data(image, 10);
+                break;
+                case Y1CB0CR0 : data[i] = DataConverter.processPixelY1Cb0Cr0Data(image, 10);
+                break;
+                case LRGB : data[i] = DataConverter.processPixelLRGBData(image);
+                break;
+                case L : data[i] = DataConverter.processPixelLData(image);
+                break;
+                case L1R0G0B0 : data[i] = DataConverter.processPixelL1RGB0Data(image);
+                break;
+                case RGB : data[i] = DataConverter.processPixelRGBData(image);
+                break;
             }
+        }
+        
+        return new FloatMatrix(data);
+    }
+    
+    @Override
+    public FloatMatrix loadCvMiniBatch(int offset, int index) {
+        float[][] data = new float[numcases][];
+        
+        for(int i = 0; i < numcases; i++) {
+            BufferedImage image = loadTinyImage(offset + index * numcases + i);
+            
+                switch(convert){
+                    case Y : data[i] = DataConverter.processPixelYData(image);
+                    break;
+                    case YCBCR : data[i] = DataConverter.processPixelYCbCrData(image, 10);
+                    break;
+                    case Y1CB0CR0 : data[i] = DataConverter.processPixelY1Cb0Cr0Data(image, 10);
+                    break;
+                    case LRGB : data[i] = DataConverter.processPixelLRGBData(image);
+                    break;
+                    case L : data[i] = DataConverter.processPixelLData(image);
+                    break;
+                    case L1R0G0B0 : data[i] = DataConverter.processPixelL1RGB0Data(image);
+                    break;
+                    case RGB : data[i] = DataConverter.processPixelRGBData(image);
+                    break;
+                }
         }
         
         return new FloatMatrix(data);
@@ -165,11 +207,6 @@ public class TinyImagesDataProvider implements DataProvider {
         Cr /= data.length / 3;
         
         return (Cb > threshold || Cr >threshold);
-    }
-    
-    public static void main(String args[]) {
-        TinyImagesDataProvider d =new TinyImagesDataProvider("/Users/Radek/Downloads/tiny_images.bin.fldownload/chunk_0.flchunk", 32, 32);
-        d.test();
     }
 
     @Override

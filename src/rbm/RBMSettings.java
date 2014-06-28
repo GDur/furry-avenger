@@ -10,6 +10,9 @@ import org.jblas.FloatMatrix;
  */
 public class RBMSettings {
 
+    private Class rbmClass;
+    private Convert convert;
+    
     private int maxepoch;
 
     private float epsilonw;
@@ -29,7 +32,25 @@ public class RBMSettings {
     private FloatMatrix hidbiases;
     private FloatMatrix visbiases;
 
+    private boolean withTest;
+    
     public RBMSettings() {
+    }
+    
+    public Class getRbmClass() {
+        return rbmClass;
+    }
+
+    public void setRbmClass(Class rbmClass) {
+        this.rbmClass = rbmClass;
+    }
+
+    public Convert getConvert() {
+        return convert;
+    }
+
+    public void setConvert(Convert convert) {
+        this.convert = convert;
     }
 
     public int getMaxepoch() {
@@ -143,7 +164,13 @@ public class RBMSettings {
     public void setVisbiases(FloatMatrix visbiases) {
         this.visbiases = visbiases;
     }
-    
-    
+
+    public boolean isWithTest() {
+        return withTest;
+    }
+
+    public void setWithTest(boolean withTest) {
+        this.withTest = withTest;
+    }
 
 }
