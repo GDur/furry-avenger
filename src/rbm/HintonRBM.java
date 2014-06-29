@@ -1,5 +1,8 @@
 package rbm;
 
+import cuda.JCUDAMatrixUtils;
+import data.DataProvider;
+import data.InOutOperations;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
@@ -226,7 +229,7 @@ public class HintonRBM implements RBM{
                 System.out.println("CV - Error: " + cvFinalError);
             }
   
-            //saveWeights(epoch);
+            saveWeights(epoch);
             dataProvider.reset();
         }
     }
@@ -247,7 +250,7 @@ public class HintonRBM implements RBM{
             InOutOperations.saveSimpleWeights(hidbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_hidbiases");
             InOutOperations.saveSimpleWeights(visbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_visbiases");
         } catch (IOException ex) {
-            Logger.getLogger(HintonRBMGaussianLinear.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(HintonRBM.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

@@ -1,5 +1,8 @@
 package rbm;
 
+import cuda.JCUDAMatrixUtils;
+import data.DataProvider;
+import data.InOutOperations;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
@@ -14,7 +17,8 @@ import org.jblas.MatrixFunctions;
  * @author Radek
  */
 public class HintonRBMGaussianLinear implements RBM {
-   
+    
+    Date date = new Date();
     private static final Log LOG = LogFactory.getLog(HintonRBMGaussianLinear.class);
     
     boolean withTest;
@@ -263,9 +267,9 @@ public class HintonRBMGaussianLinear implements RBM {
     
     public void saveWeights(int i) {
         try {
-            InOutOperations.saveSimpleWeights(vishid.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_weights");
-            InOutOperations.saveSimpleWeights(hidbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_hidbiases");
-            InOutOperations.saveSimpleWeights(visbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_visbiases");
+            InOutOperations.saveSimpleWeights(vishid.toArray2(), date, "epoch" + i + "_weights");
+            InOutOperations.saveSimpleWeights(hidbiases.toArray2(), date, "epoch" + i + "_hidbiases");
+            InOutOperations.saveSimpleWeights(visbiases.toArray2(), date, "epoch" + i + "_visbiases");
         } catch (IOException ex) {
             Logger.getLogger(HintonRBMGaussianLinear.class.getName()).log(Level.SEVERE, null, ex);
         }

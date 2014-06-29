@@ -1,5 +1,7 @@
 package rbm;
 
+import cuda.JCUDAMatrixUtils;
+import data.DataProvider;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
@@ -256,25 +258,13 @@ public class HintonRBMLinear implements RBM {
         return sigmoid(JCUDAMatrixUtils.multiply(deNormalize(hiddenData).neg(), vishid, false, true).sub(visbiases.repmat(hiddenData.getRows(), 1)));
     }
     
-    public void saveWeights(int i) {
-        try {
-            InOutOperations.saveSimpleWeights(vishid.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_weights");
-            InOutOperations.saveSimpleWeights(hidbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_hidbiases");
-            InOutOperations.saveSimpleWeights(visbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_visbiases");
-        } catch (IOException ex) {
-            Logger.getLogger(HintonRBMLinear.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
     private FloatMatrix normalize(FloatMatrix data) {
+        max = data.max();
+        min = data.min();
         
-    max = data.max();
-    min = data.min();
+        FloatMatrix normalized = data.sub(min).div(max - min);
         
-    FloatMatrix normalized = data.sub(min).div(max - min);
-        
-    return normalized;
-    
+        return normalized;
     }
     
     private FloatMatrix deNormalize(FloatMatrix data) {

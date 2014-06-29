@@ -1,6 +1,7 @@
 package rbm;
 
 
+import data.Convert;
 import org.jblas.FloatMatrix;
 
 /**

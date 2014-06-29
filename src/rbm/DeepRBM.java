@@ -1,5 +1,8 @@
 package rbm;
 
+import data.RbmDataProvider;
+import data.TinyImagesDataProvider;
+import data.DataProvider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.ListIterator;

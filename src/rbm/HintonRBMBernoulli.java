@@ -1,5 +1,8 @@
 package rbm;
 
+import cuda.JCUDAMatrixUtils;
+import data.DataProvider;
+import data.InOutOperations;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
@@ -16,6 +19,7 @@ import org.jblas.MatrixFunctions;
 public class HintonRBMBernoulli implements RBM{
    
     private static final Log LOG = LogFactory.getLog(HintonRBMGaussianLinear.class);
+    Date date = new Date();
     
     boolean withTest;
     
@@ -234,7 +238,7 @@ public class HintonRBMBernoulli implements RBM{
                 System.out.println("CV - Error: " + cvFinalError);
             }
   
-            //saveWeights(epoch);
+            saveWeights(epoch);
             dataProvider.reset();
         }
     }
@@ -251,9 +255,9 @@ public class HintonRBMBernoulli implements RBM{
     
     private void saveWeights(int i) {
         try {
-            InOutOperations.saveSimpleWeights(vishid.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_weights");
-            InOutOperations.saveSimpleWeights(hidbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_hidbiases");
-            InOutOperations.saveSimpleWeights(visbiases.toArray2(), new Date(), "epoch" + String.valueOf(i) + "_visbiases");
+            InOutOperations.saveSimpleWeights(vishid.toArray2(), date, "epoch" + String.valueOf(i) + "_weights");
+            InOutOperations.saveSimpleWeights(hidbiases.toArray2(), date, "epoch" + String.valueOf(i) + "_hidbiases");
+            InOutOperations.saveSimpleWeights(visbiases.toArray2(), date, "epoch" + String.valueOf(i) + "_visbiases");
         } catch (IOException ex) {
             Logger.getLogger(HintonRBMGaussianLinear.class.getName()).log(Level.SEVERE, null, ex);
         }

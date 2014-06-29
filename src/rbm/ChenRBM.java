@@ -1,4 +1,6 @@
 package rbm;
+import cuda.JCUDAMatrixUtils;
+import data.DataProvider;
 import static jcuda.driver.JCudaDriver.*;
 
 import java.io.ByteArrayOutputStream;

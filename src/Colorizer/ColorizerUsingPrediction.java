@@ -1,8 +1,7 @@
-package test;
+package Colorizer;
 
 import data.Convert;
 import data.DataConverter;
-import rbm.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -11,35 +10,37 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.jblas.FloatMatrix;
+import rbm.*;
 
 /**
  *
  * @author Radek
  */
-public final class Main {
+public final class ColorizerUsingPrediction {
 
-    
     Class rbm1 = HintonRBMLinear.class;
-    Convert convert1 = Convert.Y;
+    Convert convert1 = Convert.YCBCR420Data;
+    
+    boolean withTest1 = false;
     
     int edgeLength = 32;
-    int numcases = 1;
-    int numbatches = 1;
+    int numcases = 10;
+    int numbatches = 4;
 
     // RBM 1 
-    int maxepoch1 = 100;
+    int maxepoch1 = 1000;
 
-    float epsilonw1 = 0.006f; // Learning rate for weights 
-    float epsilonvb1 = 0.006f; // Learning rate for biases of visible units
-    float epsilonhb1 = 0.006f; // Learning rate for biases of hidden units 
+    float epsilonw1 = 0.003f; // Learning rate for weights 
+    float epsilonvb1 = 0.003f; // Learning rate for biases of visible units
+    float epsilonhb1 = 0.003f; // Learning rate for biases of hidden units 
     float weightcost1 = 0.0002f;
-    float initialmomentum1 = 0.5f;
-    float finalmomentum1 = 0.9f; //0.9d;
+    float initialmomentum1 = .5f;
+    float finalmomentum1 = .9f; //0.9d;
 
-    int numhid1 = 64;
+    int numhid1 = 512;
 
     int numcases1 = numcases;
-    int numdims1 = edgeLength * edgeLength;
+    int numdims1 = 1536;
     int numbatches1 = numbatches;
     
     FloatMatrix vishid1 = null;//new FloatMatrix(InOutOperations.loadSimpleWeights("/Users/Radek/git/furry-avenger/Test 16/2014_06_24_02_33_38_epoch4_weights.dat"));
@@ -47,18 +48,18 @@ public final class Main {
     FloatMatrix visbiases1 = null;//new FloatMatrix(InOutOperations.loadSimpleWeights("/Users/Radek/git/furry-avenger/Test 16/2014_06_24_02_33_38_epoch4_visbiases.dat"));
     
     // RBM 2
-    Class rbm2 = HintonRBMLinear.class;
+    Class rbm2 = ChenRBM.class;
     
-    int maxepoch2 = 5;
+    int maxepoch2 = 1000;
 
-    float epsilonw2 = 0.001f; // Learning rate for weights 
-    float epsilonvb2 = 0.001f; // Learning rate for biases of visible units
-    float epsilonhb2 = 0.001f; // Learning rate for biases of hidden units 
+    float epsilonw2 = 0.03f; // Learning rate for weights 
+    float epsilonvb2 = 0.03f; // Learning rate for biases of visible units
+    float epsilonhb2 = 0.03f; // Learning rate for biases of hidden units 
     float weightcost2 = 0.0002f;
     float initialmomentum2 = 0.5f;
-    float finalmomentum2 = 0.5f;//0.9d;
+    float finalmomentum2 = 0.9f;//0.9d;
 
-    int numhid2 = 64;
+    int numhid2 = 512;
 
     int numcases2 = numcases;
     int numdims2 = numhid1;
@@ -69,18 +70,18 @@ public final class Main {
     FloatMatrix visbiases2 = null;//new FloatMatrix(InOutOperations.loadSimpleWeights("/Users/Radek/git/furry-avenger/Test 4/2014_06_22_22_29_24_epoch9_visbiases.dat"));
 
     // RBM 3
-    Class rbm3 = HintonRBM.class;
+    Class rbm3 = ChenRBM.class;
     
-    int maxepoch3 = 5;
+    int maxepoch3 = 1000;
 
-    float epsilonw3 = 0.1f; // Learning rate for weights 
-    float epsilonvb3 = 0.1f; // Learning rate for biases of visible units
-    float epsilonhb3 = 0.1f; // Learning rate for biases of hidden units 
+    float epsilonw3 = 0.03f; // Learning rate for weights 
+    float epsilonvb3 = 0.03f; // Learning rate for biases of visible units
+    float epsilonhb3 = 0.03f; // Learning rate for biases of hidden units 
     float weightcost3 = 0.0002f;
     float initialmomentum3 = 0.5f;
     float finalmomentum3 = 0.5f;//0.9d;
 
-    int numhid3 = 128;
+    int numhid3 = 512;
 
     int numcases3 = numcases;
     int numdims3 = numhid2;
@@ -90,19 +91,19 @@ public final class Main {
     FloatMatrix hidbiases3 = null;
     FloatMatrix visbiases3 = null;
     
-    // RBM 3
-    Class rbm4 = HintonRBM.class;
+    // RBM 4
+    Class rbm4 = ChenRBM.class;
     
-    int maxepoch4 = 5;
+    int maxepoch4 = 2000;
 
-    float epsilonw4 = 0.1f; // Learning rate for weights 
-    float epsilonvb4 = 0.1f; // Learning rate for biases of visible units
-    float epsilonhb4 = 0.1f; // Learning rate for biases of hidden units 
+    float epsilonw4 = 0.03f; // Learning rate for weights 
+    float epsilonvb4 = 0.03f; // Learning rate for biases of visible units
+    float epsilonhb4 = 0.03f; // Learning rate for biases of hidden units 
     float weightcost4 = 0.0002f;
     float initialmomentum4 = 0.5f;
     float finalmomentum4 = 0.5f;//0.9d;
 
-    int numhid4 = 64;
+    int numhid4 = 512;
 
     int numcases4 = numcases;
     int numdims4 = numhid3;
@@ -114,7 +115,7 @@ public final class Main {
 
     private static final String INPUT_IMAGES_PATH = "/Users/Radek/Downloads/tiny_images.bin.fldownload/chunk_0.flchunk";
 
-    public Main() {
+    public ColorizerUsingPrediction() {
         
         RBMSettings rbmSettings1 = new RBMSettings();
         rbmSettings1.setRbmClass(rbm1);
@@ -133,6 +134,7 @@ public final class Main {
         rbmSettings1.setVishid(vishid1);
         rbmSettings1.setVisbiases(visbiases1);
         rbmSettings1.setHidbiases(hidbiases1);
+        rbmSettings1.setWithTest(withTest1);
 
         RBMSettings rbmSettings2 = new RBMSettings();
         rbmSettings2.setRbmClass(rbm2);
@@ -187,7 +189,7 @@ public final class Main {
 
         ArrayList<RBMSettings> deepRbmSettings = new ArrayList<>();
         deepRbmSettings.add(rbmSettings1);
-        //deepRbmSettings.add(rbmSettings2);
+        deepRbmSettings.add(rbmSettings2);
         //deepRbmSettings.add(rbmSettings3);
         //deepRbmSettings.add(rbmSettings4);
        
@@ -206,27 +208,42 @@ public final class Main {
         try {
             imageOriginal = ImageIO.read(fileOriginal);
         } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ColorizerUsingPrediction.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        float[] dataOriginal = DataConverter.processPixelYData(imageOriginal);
-        float[] dataBW = DataConverter.processPixelYData(imageOriginal);
+        float[] dataOriginal = DataConverter.processPixelYCbCr420Data(imageOriginal, 10);
+        float[] dataBW = DataConverter.processPixelY1Cb0Cr0420Data(imageOriginal);
 
         FloatMatrix dataMatrixOriginal = new FloatMatrix(1, dataOriginal.length, dataOriginal);
         FloatMatrix dataMatrixBW = new FloatMatrix(1, dataBW.length, dataBW);
 
         float[] reconstructedDataOriginal = deepRbm.reconstruct(dataMatrixOriginal).toArray();
-        BufferedImage reconstructedImageOriginal = DataConverter.pixelYDataToImage(reconstructedDataOriginal, 32, 32);
+        BufferedImage reconstructedImageOriginal = DataConverter.pixelYCbCr420DataToImage(reconstructedDataOriginal, 32, 32, 10);
 
         float[] reconstructedDataBW = deepRbm.reconstruct(dataMatrixBW).toArray();
-        BufferedImage reconstructedImageBW = DataConverter.pixelYDataToImage(reconstructedDataBW, 32, 32);
+        BufferedImage reconstructedImageBW = DataConverter.pixelYCbCr420DataToImage(reconstructedDataBW, 32, 32, 10);
+
+        float[] reconstructedDataDaydream3 = deepRbm.daydream(dataMatrixBW, 3).toArray();
+        BufferedImage reconstructedImageDaydream3 = DataConverter.pixelYCbCr420DataToImage(reconstructedDataDaydream3, 32, 32, 10);
+        
+        float[] reconstructedDataDaydream5 = deepRbm.daydream(dataMatrixBW, 5).toArray();
+        BufferedImage reconstructedImageDaydream5 = DataConverter.pixelYCbCr420DataToImage(reconstructedDataDaydream5, 32, 32, 10);
+        
+        float[] reconstructedDataDaydream = deepRbm.daydream(dataMatrixBW, 100).toArray();
+        BufferedImage reconstructedImageDaydream = DataConverter.pixelYCbCr420DataToImage(reconstructedDataDaydream, 32, 32, 10);
 
         File outputfileReconstructedOriginal = new File("test_originalImage_recon.png");
         File outputfileReconstructedBW = new File("test_bw_recon.png");
+        File outputfileDaydreamBW = new File("test_bw_daydream3.png");
+        File outputfileDaydreamBW3 = new File("test_bw_daydream5.png");
+        File outputfileDaydreamBW5 = new File("test_bw_daydream.png");
 
         try {
             ImageIO.write(reconstructedImageOriginal, "png", outputfileReconstructedOriginal);
             ImageIO.write(reconstructedImageBW, "png", outputfileReconstructedBW);
+            ImageIO.write(reconstructedImageDaydream, "png", outputfileDaydreamBW);
+            ImageIO.write(reconstructedImageDaydream3, "png", outputfileDaydreamBW3);
+            ImageIO.write(reconstructedImageDaydream5, "png", outputfileDaydreamBW5);
         } catch (IOException ex) {
             Logger.getLogger(HintonRBMGaussianLinear.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -246,7 +263,7 @@ public final class Main {
     }
 
     public static void main(String args[]) {
-        new Main();
+        new ColorizerUsingPrediction();
     }
 
 }

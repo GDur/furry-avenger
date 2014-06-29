@@ -1,5 +1,9 @@
 package rbm;
 
+import cuda.JCUDAMatrixUtils;
+import data.DataProvider;
+import data.InOutOperations;
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
